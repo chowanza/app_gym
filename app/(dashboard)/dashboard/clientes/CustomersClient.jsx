@@ -81,14 +81,14 @@ export default function CustomersClient() {
             placeholder="Buscar por nombre o cédula"
             className="w-full rounded border border-zinc-800 bg-zinc-900 px-3 py-2 outline-none focus:border-zinc-600 sm:w-80"
           />
-          <button onClick={onSearch} className="rounded bg-zinc-800 px-3 py-2 hover:bg-zinc-700">Buscar</button>
+          <button onClick={onSearch} className="btn-brand btn-animated px-4 py-2">{loading ? '...' : 'Buscar'}</button>
         </div>
         <div className="flex gap-2">
           <a
             href={`/api/customers/export?format=csv${query ? `&q=${encodeURIComponent(query)}` : ''}`}
-            className="rounded bg-zinc-800 px-3 py-2 hover:bg-zinc-700"
+            className="btn-brand px-4 py-2"
           >Exportar CSV</a>
-          <button onClick={() => setShowModal(true)} className="rounded bg-emerald-600 px-3 py-2 font-medium hover:bg-emerald-500">Nuevo cliente</button>
+          <button onClick={() => setShowModal(true)} className="btn-brand btn-animated px-4 py-2">Nuevo cliente</button>
         </div>
       </div>
 
@@ -106,8 +106,12 @@ export default function CustomersClient() {
             </tr>
           </thead>
           <tbody>
-            {loading ? (
-              <tr><td colSpan={5} className="px-3 py-4 text-center text-zinc-400">Cargando...</td></tr>
+            {loading && items.length === 0 ? (
+              [...Array(4)].map((_,i)=>(
+                <tr key={i}>
+                  <td colSpan={5} className="px-3 py-4"><div className="h-6 w-full skeleton rounded" /></td>
+                </tr>
+              ))
             ) : items.length === 0 ? (
               <tr><td colSpan={5} className="px-3 py-4 text-center text-zinc-500">Sin resultados</td></tr>
             ) : (
@@ -127,7 +131,7 @@ export default function CustomersClient() {
 
       {hasMore && (
         <div className="mt-4">
-          <button onClick={loadMore} disabled={loading} className="rounded bg-zinc-800 px-3 py-2 hover:bg-zinc-700 disabled:opacity-60">{loading ? 'Cargando...' : 'Cargar más'}</button>
+          <button onClick={loadMore} disabled={loading} className="btn-brand px-4 py-2 disabled:opacity-60">{loading ? 'Cargando...' : 'Cargar más'}</button>
         </div>
       )}
 
@@ -169,8 +173,8 @@ export default function CustomersClient() {
                 </select>
               </div>
               <div className="mt-2 flex justify-end gap-2">
-                <button type="button" onClick={()=>setShowModal(false)} className="rounded bg-zinc-800 px-3 py-2 hover:bg-zinc-700">Cancelar</button>
-                <button type="submit" className="rounded bg-emerald-600 px-3 py-2 font-medium hover:bg-emerald-500">Guardar</button>
+                <button type="button" onClick={()=>setShowModal(false)} className="btn-brand px-4 py-2">Cancelar</button>
+                <button type="submit" className="btn-brand btn-animated px-4 py-2">{loading ? 'Guardando...' : 'Guardar'}</button>
               </div>
             </form>
           </div>

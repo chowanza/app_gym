@@ -74,9 +74,9 @@ export default function AsistenciasClient() {
           value={cedula}
           onChange={(e)=>setCedula(e.target.value)}
           placeholder="Cédula del cliente"
-          className="w-full rounded border border-zinc-800 bg-zinc-900 px-3 py-2 outline-none focus:border-zinc-600"
+          className="w-full rounded border border-zinc-800 bg-zinc-900 px-3 py-2 outline-none focus:border-brand-to focus:ring-1 focus:ring-brand-from"
         />
-        <button disabled={loading} className="rounded bg-emerald-600 px-4 py-2 font-medium hover:bg-emerald-500 disabled:opacity-60">{loading ? 'Registrando...' : 'Registrar'}</button>
+        <button disabled={loading} className="btn-brand btn-animated px-4 py-2 disabled:opacity-60">{loading ? 'Registrando...' : 'Registrar'}</button>
       </form>
 
       {error && <div className="max-w-xl rounded border border-red-900 bg-red-950 p-2 text-sm text-red-300">{error}</div>}
@@ -103,9 +103,9 @@ export default function AsistenciasClient() {
             <label className="mb-1 block text-xs text-zinc-400">Hasta</label>
             <input type="date" value={to} onChange={(e)=>setTo(e.target.value)} className="rounded border border-zinc-800 bg-zinc-900 px-3 py-2 outline-none focus:border-zinc-600" />
           </div>
-          <button onClick={async ()=>{ setPage(1); await fetchRecent({ reset: true }); toast.success('Filtros aplicados'); }} className="rounded bg-zinc-800 px-3 py-2 hover:bg-zinc-700">Aplicar filtros</button>
-          <button onClick={async ()=>{ setQ(''); setFrom(''); setTo(''); setPage(1); await fetchRecent({ reset: true }); toast.success('Filtros limpiados'); }} className="rounded bg-zinc-800 px-3 py-2 hover:bg-zinc-700">Limpiar</button>
-          <a href={(function(){ const p=new URLSearchParams(); if(q.trim())p.set('q',q.trim()); if(from)p.set('from',from); if(to)p.set('to',to); return `/api/attendance/export?${p.toString()}`; })()} className="ml-auto rounded bg-zinc-800 px-3 py-2 hover:bg-zinc-700">Exportar CSV</a>
+          <button onClick={async ()=>{ setPage(1); await fetchRecent({ reset: true }); toast.success('Filtros aplicados'); }} className="btn-brand px-4 py-2">Aplicar filtros</button>
+          <button onClick={async ()=>{ setQ(''); setFrom(''); setTo(''); setPage(1); await fetchRecent({ reset: true }); toast.success('Filtros limpiados'); }} className="btn-brand px-4 py-2">Limpiar</button>
+          <a href={(function(){ const p=new URLSearchParams(); if(q.trim())p.set('q',q.trim()); if(from)p.set('from',from); if(to)p.set('to',to); return `/api/attendance/export?${p.toString()}`; })()} className="ml-auto btn-brand px-4 py-2">Exportar CSV</a>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[520px] border-collapse">
@@ -134,7 +134,7 @@ export default function AsistenciasClient() {
         <div className="mt-3 flex items-center justify-between">
           <div className="text-sm text-zinc-400">Total: {total}</div>
           {hasMore && (
-            <button onClick={()=>{ const next = page + 1; setPage(next); fetchRecent(); }} className="rounded bg-zinc-800 px-3 py-2 hover:bg-zinc-700">Cargar más</button>
+            <button onClick={()=>{ const next = page + 1; setPage(next); fetchRecent(); }} className="btn-brand px-4 py-2">Cargar más</button>
           )}
         </div>
       </section>

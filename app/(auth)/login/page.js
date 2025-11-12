@@ -30,9 +30,13 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="flex min-h-[60vh] items-center justify-center">
+    <main className="flex min-h-[70vh] flex-col items-center justify-center gap-6">
+      <div className="flex flex-col items-center gap-2">
+        <img src="/logo.jpg" alt="JEY Power Gym" className="h-20 w-20 rounded-full object-cover" />
+        <div className="brand-gradient-text text-lg font-semibold tracking-wide">JEY POWER GYM</div>
+      </div>
       <form onSubmit={onSubmit} className="w-full max-w-sm rounded border border-zinc-800 p-6">
-        <h1 className="mb-4 text-xl font-semibold">Iniciar sesión</h1>
+        <h1 className="mb-4 text-xl font-semibold brand-gradient-text">Iniciar sesión</h1>
         <div className="mb-3 grid gap-2">
           <label className="text-sm text-zinc-300" htmlFor="username">Usuario</label>
           <input id="username" autoFocus value={username} onChange={(e)=>setUsername(e.target.value)} className="rounded border border-zinc-800 bg-zinc-900 px-3 py-2 outline-none focus:border-zinc-600" placeholder="usuario" />
@@ -42,7 +46,7 @@ export default function LoginPage() {
           <input id="password" type="password" value={password} onChange={(e)=>setPassword(e.target.value)} className="rounded border border-zinc-800 bg-zinc-900 px-3 py-2 outline-none focus:border-zinc-600" placeholder="********" />
         </div>
         {error && <div className="mb-3 rounded border border-red-900 bg-red-950 p-2 text-sm text-red-300">{error}</div>}
-        <button type="submit" disabled={loading} className="w-full rounded bg-zinc-800 px-4 py-2 font-medium hover:bg-zinc-700 disabled:opacity-50">
+        <button type="submit" disabled={loading} className="btn-brand btn-animated w-full">
           {loading ? 'Ingresando…' : 'Entrar'}
         </button>
       </form>

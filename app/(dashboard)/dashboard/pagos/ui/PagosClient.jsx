@@ -74,9 +74,9 @@ export default function PagosClient() {
     <div className="grid gap-4">
       <div className="flex flex-col gap-3">
         <div className="flex max-w-xl gap-2">
-          <input value={q} onChange={(e)=>setQ(e.target.value)} placeholder="Buscar por nombre o cédula" className="w-full rounded border border-zinc-800 bg-zinc-900 px-3 py-2 outline-none focus:border-zinc-600" />
-          <button onClick={onSearch} className="rounded bg-zinc-800 px-3 py-2 hover:bg-zinc-700">Buscar</button>
-          <button onClick={onRefresh} className="rounded bg-zinc-800 px-3 py-2 hover:bg-zinc-700">Refrescar</button>
+          <input value={q} onChange={(e)=>setQ(e.target.value)} placeholder="Buscar por nombre o cédula" className="w-full rounded border border-zinc-800 bg-zinc-900 px-3 py-2 outline-none focus:border-brand-to focus:ring-1 focus:ring-brand-from" />
+          <button onClick={onSearch} className="btn-brand btn-animated px-4 py-2">{loading ? '...' : 'Buscar'}</button>
+          <button onClick={onRefresh} className="btn-brand px-4 py-2">Refrescar</button>
         </div>
         <div className="flex flex-wrap items-end gap-2">
           <div>
@@ -87,8 +87,8 @@ export default function PagosClient() {
             <label className="mb-1 block text-xs text-zinc-400">Hasta</label>
             <input type="date" value={to} onChange={(e)=>setTo(e.target.value)} className="rounded border border-zinc-800 bg-zinc-900 px-3 py-2 outline-none focus:border-zinc-600" />
           </div>
-          <button onClick={onSearch} className="rounded bg-zinc-800 px-3 py-2 hover:bg-zinc-700">Aplicar filtros</button>
-          <a href={exportHref()} className="ml-auto rounded bg-zinc-800 px-3 py-2 hover:bg-zinc-700">Exportar CSV</a>
+          <button onClick={onSearch} className="btn-brand px-4 py-2">Aplicar filtros</button>
+          <a href={exportHref()} className="ml-auto btn-brand px-4 py-2">Exportar CSV</a>
         </div>
       </div>
 
@@ -109,7 +109,9 @@ export default function PagosClient() {
           </thead>
           <tbody>
             {loading && items.length === 0 ? (
-              <tr><td colSpan={7} className="px-3 py-4 text-center text-zinc-400">Cargando...</td></tr>
+              [...Array(5)].map((_,i)=>(
+                <tr key={i}><td colSpan={7} className="px-3 py-3"><div className="h-6 w-full skeleton rounded" /></td></tr>
+              ))
             ) : items.length === 0 ? (
               <tr><td colSpan={7} className="px-3 py-4 text-center text-zinc-500">Sin resultados</td></tr>
             ) : (
@@ -132,7 +134,7 @@ export default function PagosClient() {
         <div className="text-sm text-zinc-400">Total: {total}</div>
         <div className="ml-auto">
           {hasMore && (
-            <button disabled={loading} onClick={loadMore} className="rounded bg-zinc-800 px-3 py-2 hover:bg-zinc-700 disabled:opacity-50">{loading ? 'Cargando...' : 'Cargar más'}</button>
+            <button disabled={loading} onClick={loadMore} className="btn-brand px-4 py-2 disabled:opacity-50">{loading ? 'Cargando...' : 'Cargar más'}</button>
           )}
         </div>
       </div>

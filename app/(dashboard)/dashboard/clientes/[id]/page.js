@@ -1,18 +1,6 @@
 import Link from 'next/link';
-
-async function getCustomer(id) {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/customers/${id}`, { cache: 'no-store' });
-  if (!res.ok) return null;
-  const json = await res.json();
-  return json?.data || null;
-}
-
-async function getPayments(id) {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/payments?customer=${id}`, { cache: 'no-store' });
-  if (!res.ok) return [];
-  const json = await res.json();
-  return json?.data || [];
-}
+import { requireAuth } from '@/lib/serverAuth';
+import { getCustomerById, getPaymentsByCustomer } from '@/lib/customerData';
 
 function StatusBadge({ customer }) {
   const active = customer?.paymentStatus === 'Activo' && customer?.membershipEndDate && new Date() <= new Date(customer.membershipEndDate);
@@ -24,8 +12,9 @@ function StatusBadge({ customer }) {
 export const metadata = { title: 'Detalle de Cliente' };
 
 export default async function ClienteDetallePage({ params }) {
+  requireAuth();
   const { id } = params;
-  const [customer, payments] = await Promise.all([getCustomer(id), getPayments(id)]);
+  const [customer, payments] = await Promise.all([getCustomerById(id), getPaymentsByCustomer(id)]);
   if (!customer) {
     return (
       <main className="py-6">
@@ -71,6 +60,13 @@ export default async function ClienteDetallePage({ params }) {
           <PaymentsTable payments={payments} />
         </section>
       </div>
+
+      <div className="mt-6 grid gap-6">
+        <section className="rounded border border-zinc-800 p-4">
+          <h2 className="mb-3 text-lg font-semibold">Editar datos del cliente</h2>
+          <CustomerEditForm customer={customer} />
+        </section>
+      </div>
     </main>
   );
 }
@@ -89,6 +85,7 @@ function PaymentsTable({ payments }) {
             <th className="border-b border-zinc-800 px-3 py-2">Método</th>
             <th className="border-b border-zinc-800 px-3 py-2">Meses</th>
             <th className="border-b border-zinc-800 px-3 py-2">Referencia</th>
+            <th className="border-b border-zinc-800 px-3 py-2">Nuevo vencimiento</th>
           </tr>
         </thead>
         <tbody>
@@ -99,6 +96,7 @@ function PaymentsTable({ payments }) {
               <td className="border-b border-zinc-900 px-3 py-2">{p.paymentMethod}</td>
               <td className="border-b border-zinc-900 px-3 py-2">{p.membershipMonths || 1}</td>
               <td className="border-b border-zinc-900 px-3 py-2">{p.referenceNumber || '-'}</td>
+              <td className="border-b border-zinc-900 px-3 py-2">{p.membershipEndAfter ? new Date(p.membershipEndAfter).toLocaleDateString() : '-'}</td>
             </tr>
           ))}
         </tbody>
@@ -108,3 +106,4 @@ function PaymentsTable({ payments }) {
 }
 
 import PaymentForm from './PaymentForm';
+import CustomerEditForm from './CustomerEditForm';

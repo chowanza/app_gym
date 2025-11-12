@@ -8,7 +8,7 @@ import { PaymentCreateSchema, parseSafe } from '@/lib/validation';
 
 export async function POST(request) {
   try {
-    await requireAuth();
+    const auth = await requireAuth();
     await dbConnect();
     const body = await request.json();
     const parsed = parseSafe(PaymentCreateSchema, body);
@@ -21,25 +21,28 @@ export async function POST(request) {
       return NextResponse.json({ success: false, error: 'Cliente no encontrado' }, { status: 404 });
     }
 
+    const now = new Date();
+    const base = customer.membershipEndDate && new Date(customer.membershipEndDate) > now
+      ? new Date(customer.membershipEndDate)
+      : now;
+    const months = membershipMonths || 1;
+    const newEnd = addMonths(base, months);
+
     const pay = await Payment.create({
       customer: customer._id,
       amount: amt,
       paymentMethod,
       referenceNumber,
-      membershipMonths: membershipMonths || 1,
+      membershipMonths: months,
       paymentDate: paymentDate ? new Date(paymentDate) : undefined,
+      membershipEndAfter: newEnd,
+      createdBy: auth?.sub,
     });
-
-    const now = new Date();
-    const base = customer.membershipEndDate && new Date(customer.membershipEndDate) > now
-      ? new Date(customer.membershipEndDate)
-      : now;
-    const newEnd = addMonths(base, pay.membershipMonths || 1);
     customer.membershipEndDate = newEnd;
     customer.paymentStatus = 'Activo';
     await customer.save();
 
-    return NextResponse.json({ success: true, data: { payment: pay, customer } }, { status: 201 });
+  return NextResponse.json({ success: true, data: { payment: pay, customer } }, { status: 201 });
   } catch (err) {
     return NextResponse.json({ success: false, error: 'Error registrando pago' }, { status: 500 });
   }

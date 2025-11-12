@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from '@/lib/toastBus';
 
 export default function PaymentForm({ customerId }) {
   const router = useRouter();
@@ -42,12 +43,14 @@ export default function PaymentForm({ customerId }) {
       const json = await res.json();
       if (!res.ok || !json.success) throw new Error(json.error || 'Error registrando pago');
       setSuccess('Pago registrado correctamente');
+      toast.success('Pago registrado');
       setAmount('');
       setMembershipMonths(1);
       setReferenceNumber('');
       router.refresh();
     } catch (e) {
       setError(e.message);
+      toast.error(e.message);
     } finally {
       setLoading(false);
     }
@@ -82,7 +85,7 @@ export default function PaymentForm({ customerId }) {
         </div>
       )}
       <div className="mt-2 flex justify-end">
-        <button disabled={loading} className="rounded bg-emerald-600 px-4 py-2 font-medium hover:bg-emerald-500 disabled:opacity-60">{loading ? 'Guardando...' : 'Registrar pago'}</button>
+        <button disabled={loading} className="btn-brand btn-animated px-4 py-2 disabled:opacity-60">{loading ? 'Guardando...' : 'Registrar pago'}</button>
       </div>
     </form>
   );

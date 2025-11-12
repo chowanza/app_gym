@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 export function middleware(req) {
   const { nextUrl, cookies } = req;
-  const protectedPaths = ['/dashboard', '/api/customers', '/api/payments', '/api/attendance', '/api/dashboard'];
+  const protectedPaths = ['/dashboard', '/api/customers', '/api/payments', '/api/attendance', '/api/dashboard', '/api/users'];
   const isProtected = protectedPaths.some((p) => nextUrl.pathname.startsWith(p));
   if (!isProtected) return NextResponse.next();
 
@@ -19,5 +19,12 @@ export function middleware(req) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*','/api/customers/:path*','/api/payments/:path*','/api/attendance/:path*','/api/dashboard/:path*'],
+  matcher: [
+    '/dashboard/:path*',
+    '/api/customers/:path*',
+    '/api/payments/:path*',
+    '/api/attendance/:path*',
+    '/api/dashboard/:path*',
+    '/api/users/:path*',
+  ],
 };

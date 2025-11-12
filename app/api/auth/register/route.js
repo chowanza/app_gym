@@ -37,6 +37,11 @@ export async function POST(request) {
 
     return NextResponse.json({ success: true, data: { id: user._id.toString(), username: user.username, role: user.role } }, { status: 201 });
   } catch (err) {
-    return NextResponse.json({ success: false, error: 'Error en el registro' }, { status: 500 });
+    const msg = err?.message || '';
+    const isConfig = msg.includes('MONGODB_URI') || msg.includes('JWT_SECRET');
+    const friendly = isConfig && process.env.NODE_ENV !== 'production'
+      ? `Configuración faltante: ${msg}`
+      : 'Error en el registro';
+    return NextResponse.json({ success: false, error: friendly }, { status: 500 });
   }
 }

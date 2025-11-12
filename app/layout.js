@@ -4,6 +4,10 @@ import Toaster from '@/components/Toaster';
 export const metadata = {
   title: 'JEY POWER GYM F.P. — Sistema Digital',
   description: 'Control de clientes, pagos y asistencias',
+  themeColor: '#0b0f14',
+  icons: {
+    icon: '/logo.jpg',
+  },
 };
 
 export default function RootLayout({ children }) {

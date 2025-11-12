@@ -36,6 +36,12 @@ export async function POST(request) {
     });
     return res;
   } catch (err) {
-    return NextResponse.json({ success: false, error: 'Error en el login' }, { status: 500 });
+    const msg = err?.message || '';
+    // En desarrollo, dar pista de configuración
+    const isConfig = msg.includes('MONGODB_URI') || msg.includes('JWT_SECRET');
+    const friendly = isConfig && process.env.NODE_ENV !== 'production'
+      ? `Configuración faltante: ${msg}`
+      : 'Error en el login';
+    return NextResponse.json({ success: false, error: friendly }, { status: 500 });
   }
 }

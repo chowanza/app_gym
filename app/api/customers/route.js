@@ -41,7 +41,7 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    await requireAuth();
+    const auth = await requireAuth();
     await dbConnect();
     const body = await request.json();
     const parsed = parseSafe(CustomerCreateSchema, body);
@@ -61,6 +61,7 @@ export async function POST(request) {
       dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
       startDate: startDate ? new Date(startDate) : undefined,
       membershipType: membershipType || 'Gym',
+      createdBy: auth?.sub,
     });
 
     return NextResponse.json({ success: true, data: customer }, { status: 201 });

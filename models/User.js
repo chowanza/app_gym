@@ -16,4 +16,7 @@ const UserSchema = new Schema(
   { timestamps: true }
 );
 
+// Index for role-based listings (admin screens)
+UserSchema.index({ role: 1 });
+
 export default models.User || model('User', UserSchema);

@@ -7,7 +7,7 @@ import { AttendanceCreateSchema, parseSafe } from '@/lib/validation';
 
 export async function POST(request) {
   try {
-    await requireAuth();
+    const auth = await requireAuth();
     await dbConnect();
     const body = await request.json();
     const parsed = parseSafe(AttendanceCreateSchema, body);
@@ -25,7 +25,7 @@ export async function POST(request) {
       return NextResponse.json({ success: false, error: 'Membresía inactiva o vencida' }, { status: 403 });
     }
 
-    const attendance = await Attendance.create({ customer: customer._id });
+    const attendance = await Attendance.create({ customer: customer._id, createdBy: auth?.sub });
     return NextResponse.json({ success: true, data: { attendance, customer } }, { status: 201 });
   } catch (err) {
     return NextResponse.json({ success: false, error: 'Error registrando asistencia' }, { status: 500 });
