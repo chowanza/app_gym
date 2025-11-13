@@ -4,9 +4,22 @@ import dbConnect from '@/lib/dbConnect';
 import User from '@/models/User';
 import { requireAuth } from '@/lib/serverAuth';
 import { RegisterSchema, parseSafe } from '@/lib/validation';
+import { rateLimit, formatRetryAfterSeconds } from '@/lib/rateLimit';
 
 export async function POST(request) {
   try {
+    // Gentle rate-limit for register to avoid abuse
+    const fwd = request.headers.get('x-forwarded-for') || '';
+    const ip = (fwd.split(',')[0] || request.headers.get('x-real-ip') || 'unknown').trim();
+    const rl = rateLimit({ key: `register:${ip}`, limit: 10, windowMs: 60 * 60_000 }); // 10/hr
+    if (!rl.allowed) {
+      const retry = rl.retryAfter ?? formatRetryAfterSeconds(rl.resetAt);
+      return new NextResponse(JSON.stringify({ success: false, error: 'Demasiadas solicitudes de registro, intenta luego.' }), {
+        status: 429,
+        headers: { 'Content-Type': 'application/json', 'Retry-After': String(retry) },
+      });
+    }
+
     const body = await request.json();
     const parsed = parseSafe(RegisterSchema, body);
     if (!parsed.ok) return NextResponse.json({ success: false, error: parsed.error }, { status: 400 });

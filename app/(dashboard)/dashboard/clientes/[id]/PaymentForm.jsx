@@ -80,8 +80,10 @@ export default function PaymentForm({ customerId }) {
       </div>
       {paymentMethod === 'Pago Movil' && (
         <div>
-          <label className="mb-1 block text-sm text-zinc-400">Referencia</label>
-          <input value={referenceNumber} onChange={(e)=>setReferenceNumber(e.target.value)} className="w-full rounded border border-zinc-800 bg-zinc-900 px-3 py-2 outline-none focus:border-zinc-600" />
+          <label className="mb-1 block text-sm text-zinc-400">Referencia *</label>
+          <input value={referenceNumber} onChange={(e)=>setReferenceNumber(e.target.value)}
+            placeholder="Últimos 6-10 dígitos de la operación"
+            className="w-full rounded border border-zinc-800 bg-zinc-900 px-3 py-2 outline-none focus:border-zinc-600" />
         </div>
       )}
       <div className="mt-2 flex justify-end">

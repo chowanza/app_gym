@@ -47,6 +47,8 @@ Documento vivo para mantener el contexto funcional y técnico del proyecto.
 - Tipos de membresía según mapa mental: 'Gym', 'Xtrembike', 'Diario', 'Mensual', 'Otro'
 - Métodos de pago: 'Efectivo', 'Pago Movil', 'Otro' (usar referenceNumber en Pago Movil)
 - Usuarios del sistema: admin/editor; credenciales seguras (hash bcrypt) y mínimo 8 caracteres
+ - Cronología de membresía: tras crear/editar/eliminar pagos se recalcula toda la cadena (orden por fecha) para actualizar `membershipEndAfter` y `membershipEndDate/paymentStatus` de forma consistente (maneja pagos con fecha pasada/futura).
+ - Pago Móvil: `referenceNumber` es requerido cuando `paymentMethod = 'Pago Movil'` (validado en API y UI).
 
 ## Rutas API (plan)
 - Auth
@@ -99,9 +101,12 @@ Documento vivo para mantener el contexto funcional y técnico del proyecto.
 - bcryptjs en lugar de bcrypt por compatibilidad de despliegue en serverless; API permanecerá igual (`compare`, `hash`).
 - Validación con Zod en endpoints críticos: login, customers (POST/PUT), payments (POST), attendance (POST). Helpers en `lib/validation.js` con `parseSafe`.
  - Añadido ChangePasswordSchema para cambio de contraseña.
+ - Recomputación centralizada de membresía: helper `lib/recomputeMembership.js` recalcula snapshots `membershipEndAfter` y estado del cliente.
+ - Rate limiting básico por IP para auth: login (5/min), register (10/h), change-password (5/min) — `lib/rateLimit.js`.
 
 ## Variables de entorno
 - MONGODB_URI — cadena MongoDB Atlas
+ - JWT_SECRET — secreto para firmar/verificar JWT (cookies de sesión)
 
 ## Roadmap (próximos pasos)
 1) Auth: /api/auth/register y /api/auth/login (bcryptjs) y preparar next-auth
@@ -120,6 +125,7 @@ Documento vivo para mantener el contexto funcional y técnico del proyecto.
   - Extras: Customer índice compuesto (`paymentStatus`, `membershipEndDate`); Payment índices por `paymentDate` y compuesto (`customer`,`paymentDate`); Attendance índices por `checkInTime` y compuesto (`customer`,`checkInTime`).
   - Pago Movil: índice único parcial en Payment.referenceNumber cuando `paymentMethod = 'Pago Movil'` para evitar referencias duplicadas.
  - GET paginado devuelve { data, page, total, hasMore } con `limit` y `page` en query.
+   - Exportaciones CSV (clientes/pagos/asistencias) requieren autenticación.
 
 ## Enlaces rápidos
 - Modelos: `models/*`

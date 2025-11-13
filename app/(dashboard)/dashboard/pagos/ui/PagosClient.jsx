@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { toast } from '@/lib/toastBus';
+import PaymentEditModal from './PaymentEditModal';
 
 export default function PagosClient() {
   const [items, setItems] = useState([]);
@@ -13,6 +14,7 @@ export default function PagosClient() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [total, setTotal] = useState(0);
+  const [editing, setEditing] = useState(null);
 
   const limit = 20;
 
@@ -95,7 +97,7 @@ export default function PagosClient() {
       {error && <div className="max-w-xl rounded border border-red-900 bg-red-950 p-2 text-sm text-red-300">{error}</div>}
 
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[680px] border-collapse">
+        <table className="w-full min-w-[860px] border-collapse">
           <thead>
             <tr className="text-left text-zinc-400">
               <th className="border-b border-zinc-800 px-3 py-2">Fecha</th>
@@ -105,6 +107,7 @@ export default function PagosClient() {
               <th className="border-b border-zinc-800 px-3 py-2">Método</th>
               <th className="border-b border-zinc-800 px-3 py-2">Meses</th>
               <th className="border-b border-zinc-800 px-3 py-2">Referencia</th>
+              <th className="border-b border-zinc-800 px-3 py-2">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -124,12 +127,41 @@ export default function PagosClient() {
                   <td className="border-b border-zinc-900 px-3 py-2">{p.paymentMethod}</td>
                   <td className="border-b border-zinc-900 px-3 py-2">{p.membershipMonths || 1}</td>
                   <td className="border-b border-zinc-900 px-3 py-2">{p.referenceNumber || '-'}</td>
+                  <td className="border-b border-zinc-900 px-3 py-2 space-x-2">
+                    <button
+                      className="rounded border border-zinc-700 px-2 py-1 text-xs hover:bg-zinc-900"
+                      onClick={() => setEditing(p)}
+                    >Editar</button>
+                    <button
+                      className="rounded border border-red-800 bg-red-950 px-2 py-1 text-xs text-red-300 hover:bg-red-900/30"
+                      onClick={async () => {
+                        if (!confirm('¿Eliminar este pago? Se recalculará la membresía del cliente.')) return;
+                        try {
+                          const res = await fetch(`/api/payments/${p._id}`, { method: 'DELETE' });
+                          const json = await res.json();
+                          if (!res.ok || !json.success) throw new Error(json.error || 'No se pudo eliminar');
+                          // Refresh list from first page
+                          setPage(1);
+                          await fetchPayments({ reset: true });
+                          toast.success('Pago eliminado');
+                        } catch (e) {
+                          toast.error(e.message);
+                        }
+                      }}
+                    >Eliminar</button>
+                  </td>
                 </tr>
               ))
             )}
           </tbody>
         </table>
       </div>
+      <PaymentEditModal
+        open={!!editing}
+        payment={editing}
+        onClose={() => setEditing(null)}
+        onSaved={async ()=>{ setEditing(null); setPage(1); await fetchPayments({ reset: true }); }}
+      />
       <div className="flex items-center justify-between gap-3">
         <div className="text-sm text-zinc-400">Total: {total}</div>
         <div className="ml-auto">

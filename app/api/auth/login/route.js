@@ -4,9 +4,22 @@ import dbConnect from '@/lib/dbConnect';
 import User from '@/models/User';
 import { signToken } from '@/lib/auth';
 import { LoginSchema, parseSafe } from '@/lib/validation';
+import { rateLimit, formatRetryAfterSeconds } from '@/lib/rateLimit';
 
 export async function POST(request) {
   try {
+    // Basic rate-limit per IP (fixed window)
+    const fwd = request.headers.get('x-forwarded-for') || '';
+    const ip = (fwd.split(',')[0] || request.headers.get('x-real-ip') || 'unknown').trim();
+    const rl = rateLimit({ key: `login:${ip}`, limit: 5, windowMs: 60_000 });
+    if (!rl.allowed) {
+      const retry = rl.retryAfter ?? formatRetryAfterSeconds(rl.resetAt);
+      return new NextResponse(JSON.stringify({ success: false, error: 'Demasiados intentos, intenta nuevamente en breve' }), {
+        status: 429,
+        headers: { 'Content-Type': 'application/json', 'Retry-After': String(retry) },
+      });
+    }
+
     const body = await request.json();
     const parsed = parseSafe(LoginSchema, body);
     if (!parsed.ok) return NextResponse.json({ success: false, error: parsed.error }, { status: 400 });

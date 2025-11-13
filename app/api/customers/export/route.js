@@ -1,9 +1,11 @@
 import dbConnect from '@/lib/dbConnect';
 import Customer from '@/models/Customer';
 import { toCSV } from '@/lib/csv';
+import { requireAuth } from '@/lib/serverAuth';
 
 export async function GET(request) {
   try {
+    requireAuth();
     await dbConnect();
     const { searchParams } = new URL(request.url);
     const q = (searchParams.get('q') || '').trim();
@@ -38,6 +40,8 @@ export async function GET(request) {
       },
     });
   } catch (err) {
-    return new Response(JSON.stringify({ success: false, error: 'Error exportando clientes' }), { status: 500 });
+    const msg = (err && err.message) || '';
+    const status = msg === 'UNAUTHENTICATED' ? 401 : (msg === 'FORBIDDEN' ? 403 : 500);
+    return new Response(JSON.stringify({ success: false, error: 'Error exportando clientes' }), { status });
   }
 }

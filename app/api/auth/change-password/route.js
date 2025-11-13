@@ -4,9 +4,22 @@ import dbConnect from '@/lib/dbConnect';
 import User from '@/models/User';
 import { requireAuth } from '@/lib/serverAuth';
 import { ChangePasswordSchema, parseSafe } from '@/lib/validation';
+import { rateLimit, formatRetryAfterSeconds } from '@/lib/rateLimit';
 
 export async function POST(request) {
   try {
+    // Throttle password change attempts per IP
+    const fwd = request.headers.get('x-forwarded-for') || '';
+    const ip = (fwd.split(',')[0] || request.headers.get('x-real-ip') || 'unknown').trim();
+    const rl = rateLimit({ key: `change-pw:${ip}`, limit: 5, windowMs: 60_000 });
+    if (!rl.allowed) {
+      const retry = rl.retryAfter ?? formatRetryAfterSeconds(rl.resetAt);
+      return new NextResponse(JSON.stringify({ success: false, error: 'Demasiados intentos, intenta nuevamente en breve' }), {
+        status: 429,
+        headers: { 'Content-Type': 'application/json', 'Retry-After': String(retry) },
+      });
+    }
+
     const payload = requireAuth();
     const body = await request.json();
     const parsed = parseSafe(ChangePasswordSchema, body);

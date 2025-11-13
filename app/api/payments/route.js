@@ -2,9 +2,9 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import Payment from '@/models/Payment';
 import Customer from '@/models/Customer';
-import { addMonths } from '@/lib/membership';
 import { requireAuth } from '@/lib/serverAuth';
 import { PaymentCreateSchema, parseSafe } from '@/lib/validation';
+import { recomputeMembershipForCustomer } from '@/lib/recomputeMembership';
 
 export async function POST(request) {
   try {
@@ -21,29 +21,26 @@ export async function POST(request) {
       return NextResponse.json({ success: false, error: 'Cliente no encontrado' }, { status: 404 });
     }
 
-    const now = new Date();
-    const base = customer.membershipEndDate && new Date(customer.membershipEndDate) > now
-      ? new Date(customer.membershipEndDate)
-      : now;
-    const months = membershipMonths || 1;
-    const newEnd = addMonths(base, months);
-
     const pay = await Payment.create({
       customer: customer._id,
       amount: amt,
       paymentMethod,
       referenceNumber,
-      membershipMonths: months,
+      membershipMonths: membershipMonths || 1,
       paymentDate: paymentDate ? new Date(paymentDate) : undefined,
-      membershipEndAfter: newEnd,
       createdBy: auth?.sub,
     });
-    customer.membershipEndDate = newEnd;
-    customer.paymentStatus = 'Activo';
-    await customer.save();
-
-  return NextResponse.json({ success: true, data: { payment: pay, customer } }, { status: 201 });
+    // Recompute entire chain to handle out-of-order paymentDate properly
+    const result = await recomputeMembershipForCustomer(customer._id);
+    const updatedPay = await Payment.findById(pay._id).lean();
+    return NextResponse.json({ success: true, data: { payment: updatedPay, customer: { _id: customer._id, ...result } } }, { status: 201 });
   } catch (err) {
+    const msg = (err && err.message) || '';
+    if (msg === 'UNAUTHENTICATED') return NextResponse.json({ success: false, error: 'No autenticado' }, { status: 401 });
+    if (msg === 'FORBIDDEN') return NextResponse.json({ success: false, error: 'No autorizado' }, { status: 403 });
+    if (err && err.code === 11000) {
+      return NextResponse.json({ success: false, error: 'Referencia de Pago Móvil ya registrada' }, { status: 409 });
+    }
     return NextResponse.json({ success: false, error: 'Error registrando pago' }, { status: 500 });
   }
 }

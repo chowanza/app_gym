@@ -1,9 +1,11 @@
 import dbConnect from '@/lib/dbConnect';
 import Payment from '@/models/Payment';
 import { toCSV } from '@/lib/csv';
+import { requireAuth } from '@/lib/serverAuth';
 
 export async function GET(request) {
   try {
+    requireAuth();
     await dbConnect();
     const { searchParams } = new URL(request.url);
     const format = (searchParams.get('format') || 'csv').toLowerCase();
@@ -19,7 +21,11 @@ export async function GET(request) {
     if (from || to) {
       filter.paymentDate = {};
       if (from) filter.paymentDate.$gte = new Date(from);
-      if (to) filter.paymentDate.$lte = new Date(to);
+      if (to) {
+        const end = new Date(to);
+        if (to.length <= 10) end.setHours(23, 59, 59, 999);
+        filter.paymentDate.$lte = end;
+      }
     }
     if (customer) filter.customer = customer;
 
@@ -46,6 +52,8 @@ export async function GET(request) {
       },
     });
   } catch (err) {
-    return new Response(JSON.stringify({ success: false, error: 'Error exportando pagos' }), { status: 500 });
+    const msg = (err && err.message) || '';
+    const status = msg === 'UNAUTHENTICATED' ? 401 : (msg === 'FORBIDDEN' ? 403 : 500);
+    return new Response(JSON.stringify({ success: false, error: 'Error exportando pagos' }), { status });
   }
 }
