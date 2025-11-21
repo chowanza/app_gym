@@ -32,21 +32,25 @@ export default function LoginPage() {
   return (
     <main className="flex min-h-[70vh] flex-col items-center justify-center gap-6">
       <div className="flex flex-col items-center gap-2">
-        <img src="/logo.jpg" alt="JEY Power Gym" className="h-20 w-20 rounded-full object-cover" />
-        <div className="brand-gradient-text text-lg font-semibold tracking-wide">JEY POWER GYM</div>
+        <img src="/logo.jpg" alt="JEY Power Gym" className="h-24 w-24 rounded-full object-cover shadow-lg" />
+        <div className="brand-gradient-text text-xl font-bold tracking-wide">JEY POWER GYM</div>
       </div>
-      <form onSubmit={onSubmit} className="w-full max-w-sm rounded border border-zinc-800 p-6">
-        <h1 className="mb-4 text-xl font-semibold brand-gradient-text">Iniciar sesión</h1>
-        <div className="mb-3 grid gap-2">
-          <label className="text-sm text-zinc-300" htmlFor="username">Usuario</label>
-          <input id="username" autoFocus value={username} onChange={(e)=>setUsername(e.target.value)} className="rounded border border-zinc-800 bg-zinc-900 px-3 py-2 outline-none focus:border-zinc-600" placeholder="usuario" />
-        </div>
+      <form onSubmit={onSubmit} className="w-full max-w-sm rounded-2xl border border-purple-900/20 bg-[#1a0b2e] p-8 shadow-2xl">
+        <h1 className="mb-6 text-center text-2xl font-bold text-white brand-gradient-text">Iniciar sesión</h1>
         <div className="mb-4 grid gap-2">
-          <label className="text-sm text-zinc-300" htmlFor="password">Contraseña</label>
-          <input id="password" type="password" value={password} onChange={(e)=>setPassword(e.target.value)} className="rounded border border-zinc-800 bg-zinc-900 px-3 py-2 outline-none focus:border-zinc-600" placeholder="********" />
+          <label className="text-sm font-medium text-purple-100" htmlFor="username">Usuario</label>
+          <input id="username" autoFocus value={username} onChange={(e)=>setUsername(e.target.value)} 
+            className="w-full rounded border border-purple-200 bg-white px-3 py-2 text-zinc-800 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500" 
+            placeholder="usuario" />
         </div>
-        {error && <div className="mb-3 rounded border border-red-900 bg-red-950 p-2 text-sm text-red-300">{error}</div>}
-        <button type="submit" disabled={loading} className="btn-brand btn-animated w-full">
+        <div className="mb-6 grid gap-2">
+          <label className="text-sm font-medium text-purple-100" htmlFor="password">Contraseña</label>
+          <input id="password" type="password" value={password} onChange={(e)=>setPassword(e.target.value)} 
+            className="w-full rounded border border-purple-200 bg-white px-3 py-2 text-zinc-800 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500" 
+            placeholder="********" />
+        </div>
+        {error && <div className="mb-4 rounded border border-red-500/50 bg-red-500/10 p-3 text-sm text-red-200">{error}</div>}
+        <button type="submit" disabled={loading} className="btn-brand btn-animated w-full py-2.5 text-base font-semibold shadow-lg shadow-purple-500/20">
           {loading ? 'Ingresando…' : 'Entrar'}
         </button>
       </form>

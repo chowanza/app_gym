@@ -8,6 +8,6 @@ export default function LogoutButton({ className = '' }) {
     window.location.href = '/login';
   };
   return (
-    <button onClick={onClick} className={`rounded bg-zinc-800 px-3 py-2 hover:bg-zinc-700 ${className}`}>Salir</button>
+    <button onClick={onClick} className={`rounded border border-purple-500/30 bg-purple-900/50 px-3 py-2 text-sm font-medium text-purple-100 hover:bg-purple-800/50 hover:text-white ${className}`}>Salir</button>
   );
 }

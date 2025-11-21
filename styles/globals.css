@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  --bg: #0b0f14;
+  --bg: #f3e8ff; /* purple-100 */
 }
 
 html, body, #__next {
@@ -12,7 +12,7 @@ html, body, #__next {
 
 body {
   background: var(--bg);
-  color: white;
+  color: #18181b; /* zinc-900 */
 }
 
 /* Utilidades de marca */
@@ -21,7 +21,7 @@ body {
 }
 
 .btn-brand {
-  @apply inline-flex items-center justify-center rounded-md bg-gradient-to-r from-brand-from to-brand-to px-4 py-2 font-medium text-white shadow-sm transition-opacity hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed;
+  @apply inline-flex items-center justify-center rounded-md bg-white border border-purple-200 px-4 py-2 font-medium text-purple-700 shadow-sm transition-all hover:bg-purple-50 hover:border-purple-300 disabled:opacity-60 disabled:cursor-not-allowed;
 }
 
 .chip-brand {

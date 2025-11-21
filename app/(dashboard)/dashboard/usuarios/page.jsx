@@ -97,62 +97,65 @@ export default function UsuariosPage() {
 
   return (
     <div className="grid gap-6">
-      <h1 className="text-xl font-semibold">Usuarios</h1>
+      <h1 className="text-xl font-semibold text-zinc-800">Usuarios</h1>
 
-      <form onSubmit={onSubmit} className="grid max-w-md gap-3 rounded border border-zinc-800 p-4">
+      <form onSubmit={onSubmit} className="grid max-w-md gap-4 rounded-xl border border-purple-100 bg-white p-6 shadow-sm">
         <div>
-          <label className="mb-1 block text-sm text-zinc-400">Usuario</label>
-          <input value={form.username} onChange={(e)=>setForm({ ...form, username: e.target.value })} className="w-full rounded border border-zinc-800 bg-zinc-900 px-3 py-2 outline-none focus:border-zinc-600" />
+          <label className="mb-1 block text-sm font-medium text-zinc-600">Usuario</label>
+          <input value={form.username} onChange={(e)=>setForm({ ...form, username: e.target.value })} 
+            className="w-full rounded border border-purple-200 bg-white px-3 py-2 text-zinc-800 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500" />
         </div>
         <div>
-          <label className="mb-1 block text-sm text-zinc-400">Contraseña</label>
-          <input type="password" value={form.password} onChange={(e)=>setForm({ ...form, password: e.target.value })} className="w-full rounded border border-zinc-800 bg-zinc-900 px-3 py-2 outline-none focus:border-zinc-600" />
+          <label className="mb-1 block text-sm font-medium text-zinc-600">Contraseña</label>
+          <input type="password" value={form.password} onChange={(e)=>setForm({ ...form, password: e.target.value })} 
+            className="w-full rounded border border-purple-200 bg-white px-3 py-2 text-zinc-800 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500" />
           <p className="mt-1 text-xs text-zinc-500">Mínimo 8 caracteres.</p>
         </div>
         <div>
-          <label className="mb-1 block text-sm text-zinc-400">Rol</label>
-          <select value={form.role} onChange={(e)=>setForm({ ...form, role: e.target.value })} className="w-full rounded border border-zinc-800 bg-zinc-900 px-3 py-2 outline-none focus:border-zinc-600">
+          <label className="mb-1 block text-sm font-medium text-zinc-600">Rol</label>
+          <select value={form.role} onChange={(e)=>setForm({ ...form, role: e.target.value })} 
+            className="w-full rounded border border-purple-200 bg-white px-3 py-2 text-zinc-800 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500">
             <option value="editor">editor</option>
             <option value="admin">admin</option>
           </select>
         </div>
-        {error && <div className="rounded border border-red-900 bg-red-950 p-2 text-sm text-red-300">{error}</div>}
+        {error && <div className="rounded border border-red-200 bg-red-50 p-2 text-sm text-red-600">{error}</div>}
         <div className="mt-2 flex justify-end">
-          <button className="rounded bg-emerald-600 px-4 py-2 font-medium hover:bg-emerald-500">Crear usuario</button>
+          <button className="btn-brand px-4 py-2">Crear usuario</button>
         </div>
       </form>
 
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[520px] border-collapse">
+      <div className="overflow-x-auto rounded-xl border border-purple-100 bg-white shadow-sm">
+        <table className="w-full min-w-[520px] border-collapse text-sm">
           <thead>
-            <tr className="text-left text-zinc-400">
-              <th className="border-b border-zinc-800 px-3 py-2">Usuario</th>
-              <th className="border-b border-zinc-800 px-3 py-2">Rol</th>
-              <th className="border-b border-zinc-800 px-3 py-2">Creado</th>
-              <th className="border-b border-zinc-800 px-3 py-2">Acciones</th>
+            <tr className="text-left text-zinc-500">
+              <th className="border-b border-purple-100 px-4 py-3 font-medium">Usuario</th>
+              <th className="border-b border-purple-100 px-4 py-3 font-medium">Rol</th>
+              <th className="border-b border-purple-100 px-4 py-3 font-medium">Creado</th>
+              <th className="border-b border-purple-100 px-4 py-3 font-medium">Acciones</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={4} className="px-3 py-4 text-center text-zinc-400">Cargando...</td></tr>
+              <tr><td colSpan={4} className="px-4 py-8 text-center text-zinc-500">Cargando...</td></tr>
             ) : items.length === 0 ? (
-              <tr><td colSpan={4} className="px-3 py-4 text-center text-zinc-500">Sin usuarios</td></tr>
+              <tr><td colSpan={4} className="px-4 py-8 text-center text-zinc-500">Sin usuarios</td></tr>
             ) : (
               items.map(u => (
-                <tr key={u.id} className="hover:bg-zinc-900/50">
-                  <td className="border-b border-zinc-900 px-3 py-2">{u.username}</td>
-                  <td className="border-b border-zinc-900 px-3 py-2">
+                <tr key={u.id} className="hover:bg-purple-50/50 text-zinc-700">
+                  <td className="border-b border-purple-50 px-4 py-3 font-medium">{u.username}</td>
+                  <td className="border-b border-purple-50 px-4 py-3">
                     <select value={u.role} onChange={(e)=>onChangeRole(u.id, e.target.value)} disabled={savingId===u.id}
-                      className="rounded border border-zinc-800 bg-zinc-900 px-2 py-1 text-sm outline-none focus:border-zinc-600">
+                      className="rounded border border-purple-200 bg-white px-2 py-1 text-xs outline-none focus:border-purple-500">
                       <option value="editor">editor</option>
                       <option value="admin">admin</option>
                     </select>
                   </td>
-                  <td className="border-b border-zinc-900 px-3 py-2">{new Date(u.createdAt).toLocaleString()}</td>
-                  <td className="border-b border-zinc-900 px-3 py-2">
+                  <td className="border-b border-purple-50 px-4 py-3">{new Date(u.createdAt).toLocaleString()}</td>
+                  <td className="border-b border-purple-50 px-4 py-3">
                     <button disabled={deletingId===u.id || (me && me.id === u.id)}
                       onClick={()=>onDelete(u.id)}
-                      className="rounded bg-red-800 px-2 py-1 text-sm hover:bg-red-700 disabled:opacity-50">
+                      className="rounded border border-red-200 px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50">
                       {deletingId===u.id ? 'Eliminando...' : 'Eliminar'}
                     </button>
                   </td>

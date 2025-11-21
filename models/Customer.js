@@ -12,7 +12,7 @@ const CustomerSchema = new Schema(
     startDate: { type: Date, default: Date.now },
     membershipType: {
       type: String,
-      enum: ['Gym', 'Xtrembike', 'Diario', 'Mensual', 'Otro'],
+      // Enum eliminado para permitir planes dinámicos
     },
     paymentStatus: {
       type: String,
@@ -20,6 +20,7 @@ const CustomerSchema = new Schema(
       default: 'Inactivo',
     },
     membershipEndDate: { type: Date },
+    photoUrl: { type: String }, // URL o Base64 de la foto de perfil
     // Auditoría: quién creó el cliente
     createdBy: { type: Types.ObjectId, ref: 'User', index: true },
   },

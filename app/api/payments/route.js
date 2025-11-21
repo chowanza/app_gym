@@ -13,7 +13,7 @@ export async function POST(request) {
     const body = await request.json();
     const parsed = parseSafe(PaymentCreateSchema, body);
     if (!parsed.ok) return NextResponse.json({ success: false, error: parsed.error }, { status: 400 });
-    const { customer: customerId, amount, paymentMethod, referenceNumber, membershipMonths = 1, paymentDate } = parsed.data;
+    const { customer: customerId, amount, paymentMethod, referenceNumber, membershipMonths, durationValue, durationType, paymentDate, currency, exchangeRate, amountVES } = body; // Usar body directo para campos nuevos no en schema estricto aun
     const amt = Number(amount);
 
     const customer = await Customer.findById(customerId);
@@ -26,8 +26,13 @@ export async function POST(request) {
       amount: amt,
       paymentMethod,
       referenceNumber,
-      membershipMonths: membershipMonths || 1,
+      membershipMonths: membershipMonths || durationValue || 1, // Fallback
+      durationValue: durationValue || membershipMonths || 1,
+      durationType: durationType || 'months',
       paymentDate: paymentDate ? new Date(paymentDate) : undefined,
+      currency: currency || 'USD',
+      exchangeRate: exchangeRate || 1,
+      amountVES: amountVES || undefined,
       createdBy: auth?.sub,
     });
     // Recompute entire chain to handle out-of-order paymentDate properly

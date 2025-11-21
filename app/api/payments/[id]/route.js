@@ -4,6 +4,21 @@ import Payment from '@/models/Payment';
 import { requireAuth } from '@/lib/serverAuth';
 import { recomputeMembershipForCustomer } from '@/lib/recomputeMembership';
 
+export async function GET(_request, { params }) {
+  try {
+    await requireAuth({ role: undefined });
+    await dbConnect();
+    const { id } = params;
+    const payment = await Payment.findById(id).lean();
+    if (!payment) return NextResponse.json({ success: false, error: 'Pago no encontrado' }, { status: 404 });
+    return NextResponse.json({ success: true, data: payment });
+  } catch (err) {
+    const msg = (err && err.message) || '';
+    const status = msg === 'UNAUTHENTICATED' ? 401 : (msg === 'FORBIDDEN' ? 403 : 500);
+    return NextResponse.json({ success: false, error: status === 500 ? 'Error obteniendo pago' : 'No autorizado' }, { status });
+  }
+}
+
 export async function DELETE(_request, { params }) {
   try {
     const auth = await requireAuth({ role: undefined });

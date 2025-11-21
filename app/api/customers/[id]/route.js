@@ -39,6 +39,7 @@ export async function PUT(request, { params }) {
       'membershipType',
       'paymentStatus',
       'membershipEndDate',
+      'photoUrl',
     ];
     const update = {};
     for (const k of allowed) {
@@ -49,12 +50,23 @@ export async function PUT(request, { params }) {
     if (update.startDate) update.startDate = new Date(update.startDate);
     if (update.membershipEndDate) update.membershipEndDate = new Date(update.membershipEndDate);
 
+    // Validar unicidad de cédula si se está actualizando
+    if (update.cedula) {
+      const exists = await Customer.findOne({ cedula: update.cedula, _id: { $ne: id } });
+      if (exists) {
+        return NextResponse.json({ success: false, error: 'La cédula ya existe en otro cliente' }, { status: 409 });
+      }
+    }
+
     const customer = await Customer.findByIdAndUpdate(id, update, { new: true });
     if (!customer) {
       return NextResponse.json({ success: false, error: 'Cliente no encontrado' }, { status: 404 });
     }
     return NextResponse.json({ success: true, data: customer });
   } catch (err) {
+    if (err.code === 11000) {
+      return NextResponse.json({ success: false, error: 'La cédula ya existe' }, { status: 409 });
+    }
     return NextResponse.json({ success: false, error: 'Error actualizando cliente' }, { status: 500 });
   }
 }

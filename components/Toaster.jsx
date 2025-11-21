@@ -20,10 +20,10 @@ export default function Toaster() {
   return (
     <div className="pointer-events-none fixed right-4 top-4 z-[1000] flex w-80 flex-col gap-2">
       {items.map((t) => (
-        <div key={t.id} className={`pointer-events-auto rounded border p-3 shadow-md transition ${
-          t.type === 'success' ? 'border-emerald-800 bg-emerald-950 text-emerald-200' :
-          t.type === 'error' ? 'border-red-800 bg-red-950 text-red-200' :
-          'border-zinc-800 bg-zinc-900 text-zinc-100'
+        <div key={t.id} className={`pointer-events-auto rounded-lg border p-4 shadow-lg backdrop-blur-sm transition ${
+          t.type === 'success' ? 'border-emerald-200 bg-emerald-50 text-emerald-800' :
+          t.type === 'error' ? 'border-red-200 bg-red-50 text-red-800' :
+          'border-purple-200 bg-white text-zinc-800'
         }`}>
           {t.title && <div className="text-sm font-semibold">{t.title}</div>}
           <div className="text-sm">{t.message}</div>

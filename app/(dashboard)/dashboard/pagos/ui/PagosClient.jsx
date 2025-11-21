@@ -76,64 +76,64 @@ export default function PagosClient() {
     <div className="grid gap-4">
       <div className="flex flex-col gap-3">
         <div className="flex max-w-xl gap-2">
-          <input value={q} onChange={(e)=>setQ(e.target.value)} placeholder="Buscar por nombre o cédula" className="w-full rounded border border-zinc-800 bg-zinc-900 px-3 py-2 outline-none focus:border-brand-to focus:ring-1 focus:ring-brand-from" />
+          <input value={q} onChange={(e)=>setQ(e.target.value)} placeholder="Buscar por nombre o cédula" className="w-full rounded border border-purple-200 bg-white px-3 py-2 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500" />
           <button onClick={onSearch} className="btn-brand btn-animated px-4 py-2">{loading ? '...' : 'Buscar'}</button>
           <button onClick={onRefresh} className="btn-brand px-4 py-2">Refrescar</button>
         </div>
         <div className="flex flex-wrap items-end gap-2">
           <div>
-            <label className="mb-1 block text-xs text-zinc-400">Desde</label>
-            <input type="date" value={from} onChange={(e)=>setFrom(e.target.value)} className="rounded border border-zinc-800 bg-zinc-900 px-3 py-2 outline-none focus:border-zinc-600" />
+            <label className="mb-1 block text-xs font-medium text-zinc-600">Desde</label>
+            <input type="date" value={from} onChange={(e)=>setFrom(e.target.value)} className="rounded border border-purple-200 bg-white px-3 py-2 outline-none focus:border-purple-500" />
           </div>
           <div>
-            <label className="mb-1 block text-xs text-zinc-400">Hasta</label>
-            <input type="date" value={to} onChange={(e)=>setTo(e.target.value)} className="rounded border border-zinc-800 bg-zinc-900 px-3 py-2 outline-none focus:border-zinc-600" />
+            <label className="mb-1 block text-xs font-medium text-zinc-600">Hasta</label>
+            <input type="date" value={to} onChange={(e)=>setTo(e.target.value)} className="rounded border border-purple-200 bg-white px-3 py-2 outline-none focus:border-purple-500" />
           </div>
           <button onClick={onSearch} className="btn-brand px-4 py-2">Aplicar filtros</button>
           <a href={exportHref()} className="ml-auto btn-brand px-4 py-2">Exportar CSV</a>
         </div>
       </div>
 
-      {error && <div className="max-w-xl rounded border border-red-900 bg-red-950 p-2 text-sm text-red-300">{error}</div>}
+      {error && <div className="max-w-xl rounded border border-red-200 bg-red-50 p-2 text-sm text-red-600">{error}</div>}
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto rounded-lg border border-purple-100 bg-white shadow-sm">
         <table className="w-full min-w-[860px] border-collapse">
           <thead>
-            <tr className="text-left text-zinc-400">
-              <th className="border-b border-zinc-800 px-3 py-2">Fecha</th>
-              <th className="border-b border-zinc-800 px-3 py-2">Cliente</th>
-              <th className="border-b border-zinc-800 px-3 py-2">Cédula</th>
-              <th className="border-b border-zinc-800 px-3 py-2">Monto</th>
-              <th className="border-b border-zinc-800 px-3 py-2">Método</th>
-              <th className="border-b border-zinc-800 px-3 py-2">Meses</th>
-              <th className="border-b border-zinc-800 px-3 py-2">Referencia</th>
-              <th className="border-b border-zinc-800 px-3 py-2">Acciones</th>
+            <tr className="text-left text-zinc-500 bg-purple-50/50">
+              <th className="border-b border-purple-100 px-3 py-2 font-medium">Fecha</th>
+              <th className="border-b border-purple-100 px-3 py-2 font-medium">Cliente</th>
+              <th className="border-b border-purple-100 px-3 py-2 font-medium">Cédula</th>
+              <th className="border-b border-purple-100 px-3 py-2 font-medium">Monto</th>
+              <th className="border-b border-purple-100 px-3 py-2 font-medium">Método</th>
+              <th className="border-b border-purple-100 px-3 py-2 font-medium">Duración</th>
+              <th className="border-b border-purple-100 px-3 py-2 font-medium">Referencia</th>
+              <th className="border-b border-purple-100 px-3 py-2 font-medium">Acciones</th>
             </tr>
           </thead>
           <tbody>
             {loading && items.length === 0 ? (
               [...Array(5)].map((_,i)=>(
-                <tr key={i}><td colSpan={7} className="px-3 py-3"><div className="h-6 w-full skeleton rounded" /></td></tr>
+                <tr key={i}><td colSpan={8} className="px-3 py-3"><div className="h-6 w-full skeleton rounded bg-zinc-100" /></td></tr>
               ))
             ) : items.length === 0 ? (
-              <tr><td colSpan={7} className="px-3 py-4 text-center text-zinc-500">Sin resultados</td></tr>
+              <tr><td colSpan={8} className="px-3 py-4 text-center text-zinc-500">Sin resultados</td></tr>
             ) : (
               items.map(p => (
-                <tr key={p._id} className="hover:bg-zinc-900/50">
-                  <td className="border-b border-zinc-900 px-3 py-2">{new Date(p.paymentDate || p.createdAt).toLocaleString()}</td>
-                  <td className="border-b border-zinc-900 px-3 py-2"><a className="hover:underline" href={`/dashboard/clientes/${p.customer?._id || p.customer}`}>{p.customer?.name || '-'}</a></td>
-                  <td className="border-b border-zinc-900 px-3 py-2">{p.customer?.cedula || '-'}</td>
-                  <td className="border-b border-zinc-900 px-3 py-2">{'$'}{p.amount.toFixed(2)}</td>
-                  <td className="border-b border-zinc-900 px-3 py-2">{p.paymentMethod}</td>
-                  <td className="border-b border-zinc-900 px-3 py-2">{p.membershipMonths || 1}</td>
-                  <td className="border-b border-zinc-900 px-3 py-2">{p.referenceNumber || '-'}</td>
-                  <td className="border-b border-zinc-900 px-3 py-2 space-x-2">
+                <tr key={p._id} className="hover:bg-purple-50/50 transition-colors">
+                  <td className="border-b border-purple-50 px-3 py-2 text-zinc-600">{new Date(p.paymentDate || p.createdAt).toLocaleString()}</td>
+                  <td className="border-b border-purple-50 px-3 py-2 font-medium"><a className="hover:underline hover:text-brand-via text-zinc-800" href={`/dashboard/clientes/${p.customer?._id || p.customer}`}>{p.customer?.name || '-'}</a></td>
+                  <td className="border-b border-purple-50 px-3 py-2 text-zinc-600">{p.customer?.cedula || '-'}</td>
+                  <td className="border-b border-purple-50 px-3 py-2 font-semibold text-emerald-600">{'$'}{p.amount.toFixed(2)}</td>
+                  <td className="border-b border-purple-50 px-3 py-2 text-zinc-600">{p.paymentMethod}</td>
+                  <td className="border-b border-purple-50 px-3 py-2 text-zinc-600">{p.durationValue || p.membershipMonths || 1} {p.durationType === 'days' ? 'días' : 'meses'}</td>
+                  <td className="border-b border-purple-50 px-3 py-2 text-zinc-600">{p.referenceNumber || '-'}</td>
+                  <td className="border-b border-purple-50 px-3 py-2 space-x-2">
                     <button
-                      className="rounded border border-zinc-700 px-2 py-1 text-xs hover:bg-zinc-900"
+                      className="rounded border border-zinc-300 px-2 py-1 text-xs text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
                       onClick={() => setEditing(p)}
                     >Editar</button>
                     <button
-                      className="rounded border border-red-800 bg-red-950 px-2 py-1 text-xs text-red-300 hover:bg-red-900/30"
+                      className="rounded border border-red-200 bg-red-50 px-2 py-1 text-xs text-red-600 hover:bg-red-100"
                       onClick={async () => {
                         if (!confirm('¿Eliminar este pago? Se recalculará la membresía del cliente.')) return;
                         try {

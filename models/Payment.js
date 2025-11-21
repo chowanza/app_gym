@@ -13,9 +13,15 @@ const PaymentSchema = new Schema(
       required: true,
     },
     referenceNumber: { type: String, trim: true }, // usado para Pago Movil
-    membershipMonths: { type: Number, default: 1, min: 1 },
+    membershipMonths: { type: Number, default: 1 }, // Deprecated in favor of durationValue/Type
+    durationValue: { type: Number, default: 1 },
+    durationType: { type: String, enum: ['days', 'months'], default: 'months' },
     // Snapshot del nuevo vencimiento tras aplicar este pago
     membershipEndAfter: { type: Date },
+    // Multi-moneda
+    currency: { type: String, enum: ['USD', 'VES'], default: 'USD' },
+    exchangeRate: { type: Number, default: 1 },
+    amountVES: { type: Number },
     // Auditoría: quién registró el pago
     createdBy: { type: Types.ObjectId, ref: 'User', index: true },
   },

@@ -28,9 +28,9 @@ export default function PaymentActions({ payment, onChanged }) {
     <div className="flex items-center gap-2">
       <button
         onClick={() => setEditing(true)}
-        className="rounded border border-zinc-700 px-2 py-1 text-xs hover:bg-zinc-900"
+        className="rounded border border-purple-200 px-2 py-1 text-xs font-medium text-zinc-600 hover:bg-purple-50 hover:text-purple-700"
       >Editar</button>
-      <button onClick={onDelete} className="rounded border border-red-800 bg-red-950 px-2 py-1 text-xs text-red-300 hover:bg-red-900/30">Eliminar</button>
+      <button onClick={onDelete} className="rounded border border-red-200 bg-red-50 px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-100">Eliminar</button>
       <PaymentEditModal
         open={editing}
         onClose={()=>setEditing(false)}

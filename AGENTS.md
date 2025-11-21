@@ -78,6 +78,21 @@ Documento vivo para mantener el contexto funcional y técnico del proyecto.
     - DELETE /api/users/:id — eliminar usuario (no permite eliminarse a sí mismo ni dejar sin admin)
  - Customers
   - GET /api/customers/export?format=csv&q= — exporta CSV de clientes con filtro por nombre/cédula
+ - Payments (CRUD)
+  - GET /api/payments/:id — detalle de un pago
+  - PATCH /api/payments/:id — editar pago (valida monto > 0, meses >= 1; si metodo_pago = 'Pago Movil' requiere numero_referencia). Recalcula cronología de membresía del cliente.
+  - DELETE /api/payments/:id — eliminar pago. Recalcula cronología de membresía del cliente.
+ - Attendance (CRUD)
+  - GET /api/attendance/:id — detalle de asistencia
+  - PATCH /api/attendance/:id — editar asistencia (permitido cambiar cliente y/u hora_entrada; valida que el cliente esté activo en la fecha/hora indicada)
+  - DELETE /api/attendance/:id — eliminar asistencia (corrección por registro erróneo)
+ - Plans (Dynamic Pricing)
+  - GET /api/plans — lista planes activos (public)
+  - POST /api/plans — crear plan (admin)
+  - PUT /api/plans/:id — editar plan (admin)
+  - DELETE /api/plans/:id — eliminar/desactivar plan (admin)
+ - Reports
+  - GET /api/reports/daily?date=YYYY-MM-DD — reporte de cierre de caja diario
 
 ## UI (plan)
 - /login — formulario de acceso
@@ -90,6 +105,8 @@ Documento vivo para mantener el contexto funcional y técnico del proyecto.
 - Detalle de cliente — historial de pagos, formulario para nuevo pago
 - /dashboard/pagos — listado de pagos con buscador (nombre/cédula)
 - /dashboard/asistencias — check-in por cédula y últimas asistencias
+  - Acciones en pagos: editar/eliminar con recálculo de vencimiento
+  - Acciones en asistencias: editar/eliminar (corrección de registros)
  - /dashboard/perfil — cambio de contraseña del usuario
   - /dashboard/usuarios — (admin) listado, alta, cambio de rol y eliminación de usuarios
 
@@ -108,14 +125,39 @@ Documento vivo para mantener el contexto funcional y técnico del proyecto.
 - MONGODB_URI — cadena MongoDB Atlas
  - JWT_SECRET — secreto para firmar/verificar JWT (cookies de sesión)
 
-## Roadmap (próximos pasos)
-1) Auth: /api/auth/register y /api/auth/login (bcryptjs) y preparar next-auth
-2) CRUD Customers: API + UI (/dashboard/clientes)
-3) Payments: endpoint que actualiza `membershipEndDate` y `paymentStatus`
-4) Dashboard KPIs: total pagos, inscritos del mes, total clientes
-5) Guardas de ruta en `middleware` (rol-based) incluyendo rutas API críticas
-6) Mejoras UX: paginación y filtros server-side en pagos (UI adaptada), toasts de éxito/error
-7) Export de asistencias a CSV en UI y API
+## Visión Estratégica (CEO & Product Owner)
+Para convertir este MVP en la herramienta líder de gestión para gimnasios, debemos evolucionar de un "registro de datos" a un "sistema operativo de negocio".
+1. **Fricción Cero en el Acceso:** El ingreso manual por cédula es lento. La meta es **Acceso QR** (rápido, moderno y sin contacto).
+2. **Rigor Financiero:** No basta con registrar pagos. El dueño necesita un **Cierre de Caja** diario para conciliar efectivo vs. digital y evitar fugas de dinero.
+3. **Flexibilidad Comercial:** Los precios cambian. Necesitamos un **Catálogo de Planes** dinámico (base de datos) en lugar de opciones fijas en código, permitiendo promociones ágiles.
+4. **Retención Activa:** El sistema debe avisar no solo cuando alguien paga, sino cuando **deja de venir**. Reportes de "Riesgo de Abandono" y alertas de vencimiento.
+
+## Roadmap Evolutivo
+
+### Fase 1: Robustez Operativa y Financiera (Ready to Deploy)
+- [x] **Catálogo de Planes (Dynamic Pricing):** Crear modelo `MembershipPlan` (nombre, precio, duración en días/meses). Eliminar hardcodeo de tipos de membresía.
+- [x] **Cierre de Caja (Cash Reconciliation):** Reporte diario que agrupe pagos por método (Efectivo vs Digital) y usuario que cobró.
+- [x] **Manejo de Errores Global:** Implementar `error.js` y `not-found.js` para fallos elegantes.
+- [ ] **Despliegue:** Configuración para Vercel/Railway + MongoDB Atlas.
+
+### Fase 2: Experiencia de Acceso (The "Wow" Factor)
+- [ ] **Carnet Digital QR:** Generar un código QR único por cliente visible en su perfil o enviado por correo.
+- [ ] **Modo Escáner:** Vista especial para el recepcionista que usa la cámara del dispositivo para leer QRs y registrar asistencia instantánea.
+- [ ] **Fotos de Perfil:** Subida de imágenes (Cloudinary/S3) para verificación visual al ingreso.
+
+### Fase 3: Inteligencia y Retención
+- [ ] **Alertas de Vencimiento:** Emails automáticos (Resend/SendGrid) 3 días antes del vencimiento.
+- [ ] **Reporte de Ausencia:** Listado de clientes activos que no han asistido en >7 días.
+- [ ] **Dashboard Financiero Avanzado:** Gráficos de tendencia de ingresos (MRR) y retención mensual.
+
+## Roadmap (Legacy/Completado)
+1) Auth: /api/auth/register y /api/auth/login (bcryptjs) y preparar next-auth (Completado)
+2) CRUD Customers: API + UI (/dashboard/clientes) (Completado)
+3) Payments: endpoint que actualiza `membershipEndDate` y `paymentStatus` (Completado)
+4) Dashboard KPIs: total pagos, inscritos del mes, total clientes (Completado)
+5) Guardas de ruta en `middleware` (rol-based) incluyendo rutas API críticas (Completado)
+6) Mejoras UX: paginación y filtros server-side en pagos (UI adaptada), toasts de éxito/error (Completado)
+7) Export de asistencias a CSV en UI y API (Completado)
 
 ## Convenciones
 - Validar entradas en API (Zod/Yup opcional)
@@ -132,3 +174,98 @@ Documento vivo para mantener el contexto funcional y técnico del proyecto.
 - Conexión: `lib/dbConnect.js`
 - Rutas API: `app/api/*`
 - Estilos: `styles/globals.css`
+
+## Diagrama ER (Relacional simulado)
+Este diagrama representa los modelos actuales como si fueran tablas relacionales con claves primarias/foráneas y catálogos para enums.
+
+```mermaid
+erDiagram
+    USUARIO ||--o{ CLIENTE : creado_por
+    USUARIO ||--o{ PAGO : creado_por
+    USUARIO ||--o{ ASISTENCIA : creado_por
+
+    CLIENTE ||--o{ PAGO : tiene
+    CLIENTE ||--o{ ASISTENCIA : registra
+
+    ROL ||--|{ USUARIO : asigna
+    TIPO_MEMBRESIA ||--|{ CLIENTE : categoriza
+    ESTADO_PAGO ||--|{ CLIENTE : estado
+    METODO_PAGO ||--|{ PAGO : usa
+
+    USUARIO {
+      int id
+      string usuario
+      string contrasena_hash
+      string rol
+      datetime creado_en
+      datetime actualizado_en
+    }
+
+    ROL {
+      string rol
+      string descripcion
+    }
+
+    CLIENTE {
+      int id
+      string nombre
+      string cedula
+      string correo
+      string telefono
+      date fecha_nacimiento
+      date fecha_inicio
+      string tipo_membresia
+      string estado_pago
+      date fecha_fin_membresia
+      int creado_por
+      datetime creado_en
+      datetime actualizado_en
+    }
+
+    PAGO {
+      int id
+      int cliente_id
+      numeric monto
+      date fecha_pago
+      string metodo_pago
+      string numero_referencia
+      int meses_membresia
+      date vence_despues
+      int creado_por
+      datetime creado_en
+      datetime actualizado_en
+    }
+
+    ASISTENCIA {
+      int id
+      int cliente_id
+      datetime hora_entrada
+      int creado_por
+      datetime creado_en
+      datetime actualizado_en
+    }
+
+    TIPO_MEMBRESIA {
+      string codigo
+      string nombre
+    }
+
+    METODO_PAGO {
+      string codigo
+      string nombre
+    }
+
+    ESTADO_PAGO {
+      string codigo
+      string nombre
+    }
+```
+
+### Claves y restricciones (relacional)
+- PK: `USUARIO(id)`, `CLIENTE(id)`, `PAGO(id)`, `ASISTENCIA(id)`; catálogos con PK natural: `ROL(rol)`, `TIPO_MEMBRESIA(codigo)`, `METODO_PAGO(codigo)`, `ESTADO_PAGO(codigo)`.
+- FK: `CLIENTE(creado_por) → USUARIO(id)`; `PAGO(cliente_id) → CLIENTE(id)`; `PAGO(creado_por) → USUARIO(id)`; `ASISTENCIA(cliente_id) → CLIENTE(id)`; `ASISTENCIA(creado_por) → USUARIO(id)`; `CLIENTE(tipo_membresia) → TIPO_MEMBRESIA(codigo)`; `CLIENTE(estado_pago) → ESTADO_PAGO(codigo)`; `PAGO(metodo_pago) → METODO_PAGO(codigo)`.
+- Únicos: `USUARIO(usuario)`; `CLIENTE(cedula)`; `PAGO(numero_referencia)` filtrado/partial cuando `metodo_pago = 'Pago Movil'`.
+- Checks: `PAGO.monto > 0`; `PAGO.meses_membresia >= 1`; `numero_referencia IS NOT NULL` cuando `metodo_pago = 'Pago Movil'`.
+- Índices sugeridos: `PAGO(cliente_id, fecha_pago)`; `ASISTENCIA(cliente_id, hora_entrada)`; `CLIENTE(estado_pago, fecha_fin_membresia)`; `PAGO(fecha_pago)`; `ASISTENCIA(hora_entrada)`.
+
+Notas: `CUSTOMER.membership_end_date` y `CUSTOMER.payment_status` pueden mantenerse como columnas derivadas y recalculadas tras crear/editar/eliminar pagos (equivalente a nuestra recomputación), o derivarse vía vista/materialized view según motor.
