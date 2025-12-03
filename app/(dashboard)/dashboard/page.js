@@ -3,11 +3,18 @@ import { requireAuth } from '@/lib/serverAuth';
 import { getDashboardMetrics } from '@/lib/metrics';
 import DashboardFilters from './DashboardFilters';
 import ExchangeRateWidget from './ExchangeRateWidget';
+import dbConnect from '@/lib/dbConnect';
+import Config from '@/models/Config';
 
 export default async function DashboardPage({ searchParams }) {
   // Enforce auth on server and compute metrics directly (sin fetch HTTP)
   await requireAuth();
-  const metrics = await getDashboardMetrics(searchParams);
+  await dbConnect();
+  const [metrics, config] = await Promise.all([
+    getDashboardMetrics(searchParams),
+    Config.findOne({ key: 'exchange_rate' })
+  ]);
+  const rate = config?.value || 0;
   const isFiltered = metrics.isFiltered;
 
   return (
@@ -26,11 +33,28 @@ export default async function DashboardPage({ searchParams }) {
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <div className="rounded-xl border border-purple-100 bg-white p-6 shadow-sm">
-          <div className="text-sm font-medium text-zinc-500">Pagos recibidos {isFiltered ? '(rango)' : '(total)'}</div>
-          <div className="mt-2 text-3xl font-bold text-zinc-800">{'$'}{metrics.totalPayments.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+          <div className="text-sm font-medium text-zinc-500">Pagos recibidos {metrics.isToday ? '(hoy)' : '(rango)'}</div>
+          <div className="mt-2">
+            <div className="text-3xl font-bold text-zinc-800">{'$'}{metrics.totalPayments.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            {rate > 0 && metrics.isToday && (
+              <div className="text-sm text-zinc-500 font-medium mt-1">
+                Bs {(metrics.totalPayments * rate).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+            )}
+          </div>
+          {metrics.paymentsByMethod?.length > 0 && (
+            <div className="mt-4 border-t border-purple-50 pt-3 space-y-1">
+              {metrics.paymentsByMethod.map((m) => (
+                <div key={m._id} className="flex justify-between text-xs text-zinc-600">
+                  <span>{m._id || 'Otros'}</span>
+                  <span className="font-medium">${m.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
         <div className="rounded-xl border border-purple-100 bg-white p-6 shadow-sm">
-          <div className="text-sm font-medium text-zinc-500">Inscritos {isFiltered ? '(rango)' : 'en el mes'}</div>
+          <div className="text-sm font-medium text-zinc-500">Inscritos {metrics.isToday ? '(hoy)' : '(rango)'}</div>
           <div className="mt-2 text-3xl font-bold text-zinc-800">{metrics.newCustomersCount}</div>
         </div>
         <div className="rounded-xl border border-purple-100 bg-white p-6 shadow-sm">
@@ -45,7 +69,7 @@ export default async function DashboardPage({ searchParams }) {
           <div className="mt-2 text-3xl font-bold text-emerald-600">{metrics.activeCustomers ?? '-'}</div>
         </div>
         <div className="rounded-xl border border-purple-100 bg-white p-6 shadow-sm">
-          <div className="text-sm font-medium text-zinc-500">Asistencias {isFiltered ? '(rango)' : 'de hoy'}</div>
+          <div className="text-sm font-medium text-zinc-500">Asistencias {metrics.isToday ? '(hoy)' : '(rango)'}</div>
           <div className="mt-2 text-3xl font-bold text-brand-via">{metrics.attendancesCount ?? '-'}</div>
         </div>
       </div>

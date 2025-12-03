@@ -123,7 +123,10 @@ export default function PagosClient() {
                   <td className="border-b border-purple-50 px-3 py-2 text-zinc-600">{new Date(p.paymentDate || p.createdAt).toLocaleString()}</td>
                   <td className="border-b border-purple-50 px-3 py-2 font-medium"><a className="hover:underline hover:text-brand-via text-zinc-800" href={`/dashboard/clientes/${p.customer?._id || p.customer}`}>{p.customer?.name || '-'}</a></td>
                   <td className="border-b border-purple-50 px-3 py-2 text-zinc-600">{p.customer?.cedula || '-'}</td>
-                  <td className="border-b border-purple-50 px-3 py-2 font-semibold text-emerald-600">{'$'}{p.amount.toFixed(2)}</td>
+                  <td className="border-b border-purple-50 px-3 py-2">
+                    <div className="font-semibold text-emerald-600">${p.amount.toFixed(2)}</div>
+                    {p.amountVES && <div className="text-xs text-zinc-500">Bs {p.amountVES.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>}
+                  </td>
                   <td className="border-b border-purple-50 px-3 py-2 text-zinc-600">{p.paymentMethod}</td>
                   <td className="border-b border-purple-50 px-3 py-2 text-zinc-600">{p.durationValue || p.membershipMonths || 1} {p.durationType === 'days' ? 'días' : 'meses'}</td>
                   <td className="border-b border-purple-50 px-3 py-2 text-zinc-600">{p.referenceNumber || '-'}</td>

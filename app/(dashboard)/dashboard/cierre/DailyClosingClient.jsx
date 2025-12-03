@@ -9,6 +9,7 @@ export default function DailyClosingClient() {
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [exchangeRate, setExchangeRate] = useState(0);
 
   const fetchReport = async (selectedDate) => {
     setLoading(true);
@@ -30,6 +31,12 @@ export default function DailyClosingClient() {
 
   useEffect(() => {
     fetchReport(date);
+    fetch('/api/config/rate')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.rate) setExchangeRate(data.rate);
+      })
+      .catch(() => {});
   }, [date]);
 
   const formatCurrency = (amount) => {
@@ -70,25 +77,40 @@ export default function DailyClosingClient() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-blue-500">
               <h3 className="text-gray-500 text-sm font-medium uppercase">Total Recaudado</h3>
-              <p className="text-3xl font-bold text-gray-800 mt-2">{formatCurrency(report.totalAmount)}</p>
+              <div className="mt-2">
+                <p className="text-3xl font-bold text-gray-800">{formatCurrency(report.totalAmount)}</p>
+                {report.totalAmountVES > 0 && (
+                  <p className="text-sm text-zinc-500 font-medium">Bs {report.totalAmountVES.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                )}
+              </div>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-green-500">
               <h3 className="text-gray-500 text-sm font-medium uppercase">Efectivo</h3>
-              <p className="text-3xl font-bold text-gray-800 mt-2">
-                {formatCurrency(report.byMethod['Efectivo']?.total || 0)}
-              </p>
+              <div className="mt-2">
+                <p className="text-3xl font-bold text-gray-800">
+                  {formatCurrency(report.byMethod['Efectivo']?.total || 0)}
+                </p>
+                {(report.byMethod['Efectivo']?.totalVES || 0) > 0 && (
+                  <p className="text-sm text-zinc-500 font-medium">Bs {(report.byMethod['Efectivo']?.totalVES || 0).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                )}
+              </div>
               <p className="text-xs text-gray-500 mt-1">
                 {report.byMethod['Efectivo']?.count || 0} transacciones
               </p>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-purple-500">
               <h3 className="text-gray-500 text-sm font-medium uppercase">Digital (Pago Móvil/Otro)</h3>
-              <p className="text-3xl font-bold text-gray-800 mt-2">
-                {formatCurrency(
-                  (report.byMethod['Pago Movil']?.total || 0) + 
-                  (report.byMethod['Otro']?.total || 0)
+              <div className="mt-2">
+                <p className="text-3xl font-bold text-gray-800">
+                  {formatCurrency(
+                    (report.byMethod['Pago Movil']?.total || 0) + 
+                    (report.byMethod['Otro']?.total || 0)
+                  )}
+                </p>
+                {((report.byMethod['Pago Movil']?.totalVES || 0) + (report.byMethod['Otro']?.totalVES || 0)) > 0 && (
+                  <p className="text-sm text-zinc-500 font-medium">Bs {((report.byMethod['Pago Movil']?.totalVES || 0) + (report.byMethod['Otro']?.totalVES || 0)).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                 )}
-              </p>
+              </div>
               <p className="text-xs text-gray-500 mt-1">
                 {(report.byMethod['Pago Movil']?.count || 0) + (report.byMethod['Otro']?.count || 0)} transacciones
               </p>

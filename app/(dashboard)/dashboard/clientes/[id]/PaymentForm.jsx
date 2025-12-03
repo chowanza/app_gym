@@ -53,10 +53,12 @@ export default function PaymentForm({ customerId, initialPlanName }) {
 
   // Recalcular VES cuando cambia USD o Tasa
   useEffect(() => {
-    if (currency === 'VES' && amount && exchangeRate) {
+    if (amount && exchangeRate) {
       setAmountVES((Number(amount) * exchangeRate).toFixed(2));
+    } else {
+      setAmountVES('');
     }
-  }, [amount, exchangeRate, currency]);
+  }, [amount, exchangeRate]);
 
   const onPlanChange = (e) => {
     const planId = e.target.value;
@@ -97,8 +99,8 @@ export default function PaymentForm({ customerId, initialPlanName }) {
           durationValue: Number(durationValue) || 1,
           durationType,
           currency,
-          exchangeRate: currency === 'VES' ? exchangeRate : 1,
-          amountVES: currency === 'VES' ? Number(amountVES) : undefined,
+          exchangeRate: exchangeRate,
+          amountVES: Number(amountVES),
         }),
       });
       const json = await res.json();
@@ -148,18 +150,16 @@ export default function PaymentForm({ customerId, initialPlanName }) {
         </div>
       </div>
 
-      {currency === 'VES' && (
-        <div className="rounded bg-purple-50 p-3 text-sm text-purple-800">
-          <div className="flex justify-between">
-            <span>Tasa del día:</span>
-            <span className="font-bold">{exchangeRate.toLocaleString('es-VE', { minimumFractionDigits: 2 })} VES/USD</span>
-          </div>
-          <div className="mt-1 flex justify-between border-t border-purple-200 pt-1">
-            <span>A pagar en Bolívares:</span>
-            <span className="font-bold text-lg">{Number(amountVES).toLocaleString('es-VE', { minimumFractionDigits: 2 })} VES</span>
-          </div>
+      <div className="rounded bg-purple-50 p-3 text-sm text-purple-800">
+        <div className="flex justify-between">
+          <span>Tasa del día:</span>
+          <span className="font-bold">{exchangeRate.toLocaleString('es-VE', { minimumFractionDigits: 2 })} VES/USD</span>
         </div>
-      )}
+        <div className="mt-1 flex justify-between border-t border-purple-200 pt-1">
+          <span>Equivalente en Bolívares:</span>
+          <span className="font-bold text-lg">{Number(amountVES).toLocaleString('es-VE', { minimumFractionDigits: 2 })} VES</span>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>

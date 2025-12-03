@@ -41,28 +41,35 @@ export async function GET(request) {
 
     // Calcular métricas
     let totalAmount = 0;
+    let totalAmountVES = 0;
     const byMethod = {};
     const byUser = {};
 
     payments.forEach(payment => {
       const amount = payment.amount || 0;
+      // Si no hay amountVES explícito, intentar calcularlo con la tasa histórica del pago
+      const amountVES = payment.amountVES || (amount * (payment.exchangeRate || 0));
+      
       totalAmount += amount;
+      totalAmountVES += amountVES;
 
       // Agrupar por método
       const method = payment.paymentMethod || 'Desconocido';
       if (!byMethod[method]) {
-        byMethod[method] = { count: 0, total: 0 };
+        byMethod[method] = { count: 0, total: 0, totalVES: 0 };
       }
       byMethod[method].count += 1;
       byMethod[method].total += amount;
+      byMethod[method].totalVES += amountVES;
 
       // Agrupar por usuario (cajero)
       const user = payment.createdBy ? payment.createdBy.username : 'Sistema/Desconocido';
       if (!byUser[user]) {
-        byUser[user] = { count: 0, total: 0 };
+        byUser[user] = { count: 0, total: 0, totalVES: 0 };
       }
       byUser[user].count += 1;
       byUser[user].total += amount;
+      byUser[user].totalVES += amountVES;
     });
 
     return NextResponse.json({
@@ -70,6 +77,7 @@ export async function GET(request) {
       data: {
         date: startDate,
         totalAmount,
+        totalAmountVES,
         byMethod,
         byUser,
         transactions: payments

@@ -22,8 +22,15 @@ export async function GET(request) {
         { cedula: { $regex: q, $options: 'i' } },
       ];
     }
-    if (status && (status === 'Activo' || status === 'Inactivo')) {
-      filter.paymentStatus = status;
+    if (status === 'Activo') {
+      filter.paymentStatus = 'Activo';
+      filter.membershipEndDate = { $gte: new Date() };
+    } else if (status === 'Inactivo') {
+      filter.$or = [
+        { paymentStatus: 'Inactivo' },
+        { membershipEndDate: { $lt: new Date() } },
+        { membershipEndDate: { $exists: false } }
+      ];
     }
 
     const [customers, total] = await Promise.all([

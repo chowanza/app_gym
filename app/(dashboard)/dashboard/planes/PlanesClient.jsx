@@ -6,6 +6,7 @@ import { toast } from '@/lib/toastBus';
 export default function PlanesClient() {
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [exchangeRate, setExchangeRate] = useState(0);
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({ name: '', price: '', durationValue: 1, durationType: 'months', description: '', active: true });
@@ -23,7 +24,19 @@ export default function PlanesClient() {
     }
   };
 
-  useEffect(() => { fetchPlans(); }, []);
+  const fetchRate = async () => {
+    try {
+      const res = await fetch('/api/config/rate');
+      const json = await res.json();
+      if (json.success && json.rate) {
+        setExchangeRate(json.rate);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  useEffect(() => { fetchPlans(); fetchRate(); }, []);
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -94,7 +107,12 @@ export default function PlanesClient() {
           <div key={plan._id} className={`rounded-xl border p-4 shadow-sm transition-all hover:shadow-md ${plan.active ? 'border-purple-100 bg-white' : 'border-zinc-200 bg-zinc-50 opacity-60'}`}>
             <div className="flex justify-between items-start mb-2">
               <h3 className="font-semibold text-lg text-zinc-800">{plan.name}</h3>
-              <span className="text-brand-via font-bold text-xl">${plan.price}</span>
+              <div className="text-right">
+                <div className="text-brand-via font-bold text-xl">${plan.price}</div>
+                {exchangeRate > 0 && (
+                  <div className="text-sm text-zinc-500">Bs {(plan.price * exchangeRate).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                )}
+              </div>
             </div>
             <div className="text-sm text-zinc-600 mb-4">
               <span className="font-medium">{plan.durationValue || plan.durationMonths} {plan.durationType === 'days' ? 'días' : 'meses'}</span>

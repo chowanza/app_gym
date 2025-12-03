@@ -1,11 +1,21 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from '@/lib/toastBus';
 
 export default function PaymentEditModal({ open, onClose, payment, onSaved }) {
   const [form, setForm] = useState(() => init(payment));
   const [saving, setSaving] = useState(false);
+  const [exchangeRate, setExchangeRate] = useState(0);
+
+  useEffect(() => {
+    if (open) {
+      fetch('/api/config/rate')
+        .then(res => res.json())
+        .then(data => { if (data.success) setExchangeRate(data.rate); })
+        .catch(() => {});
+    }
+  }, [open]);
 
   // Reset form when payment changes or modal opens
   if (open && form._id !== payment?._id) {
@@ -52,6 +62,11 @@ export default function PaymentEditModal({ open, onClose, payment, onSaved }) {
             <label className="mb-1 block text-xs font-medium text-zinc-600">Monto</label>
             <input type="number" step="0.01" value={form.amount} onChange={(e)=>setForm({...form, amount:e.target.value})}
               className="w-full rounded border border-purple-200 bg-white px-3 py-2 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500" />
+            {exchangeRate > 0 && form.amount > 0 && (
+              <div className="mt-1 text-xs text-zinc-500">
+                Bs {(form.amount * exchangeRate).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (Tasa: {exchangeRate})
+              </div>
+            )}
           </div>
           <div>
             <label className="mb-1 block text-xs font-medium text-zinc-600">Meses</label>

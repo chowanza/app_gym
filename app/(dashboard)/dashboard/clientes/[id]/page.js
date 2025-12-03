@@ -117,7 +117,7 @@ function PaymentsTable({ payments }) {
               <td className="border-b border-purple-50 px-4 py-3">{new Date(p.paymentDate || p.createdAt).toLocaleString()}</td>
               <td className="border-b border-purple-50 px-4 py-3 font-medium">
                 ${p.amount.toFixed(2)}
-                {p.currency === 'VES' && <div className="text-xs text-zinc-500">{p.amountVES?.toLocaleString('es-VE')} Bs</div>}
+                {p.amountVES && <div className="text-xs text-zinc-500">{p.amountVES?.toLocaleString('es-VE')} Bs</div>}
               </td>
               <td className="border-b border-purple-50 px-4 py-3">{p.paymentMethod}</td>
               <td className="border-b border-purple-50 px-4 py-3">{p.membershipMonths || 1}</td>
@@ -191,7 +191,7 @@ function PaymentsTimeline({ payments }) {
           <div className="mt-1 text-sm">
             <div className="font-medium text-zinc-800">
               Pago {idx+1}: {'$'}{it.amount.toFixed(2)} 
-              {it.currency === 'VES' && it.amountVES && <span className="text-xs text-zinc-500 ml-1">({it.amountVES.toLocaleString('es-VE')} Bs)</span>}
+              {it.amountVES && <span className="text-xs text-zinc-500 ml-1">({it.amountVES.toLocaleString('es-VE')} Bs)</span>}
               {' · '}{it.months} {it.months===1?'mes':'meses'} · {it.method}
             </div>
             <div className="text-zinc-500">Ref: {it.ref || '-'}{it.end ? ` · Nuevo vencimiento: ${it.end.toLocaleDateString()}` : ''}</div>

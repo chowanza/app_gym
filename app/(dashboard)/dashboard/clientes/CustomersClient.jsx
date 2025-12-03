@@ -155,7 +155,7 @@ export default function CustomersClient() {
             href={`/api/customers/export?format=csv${query ? `&q=${encodeURIComponent(query)}` : ''}`}
             className="btn-brand px-4 py-2"
           >Exportar CSV</a>
-          <button onClick={() => setShowModal(true)} className="btn-brand btn-animated px-4 py-2">Nuevo cliente</button>
+          <button onClick={() => setShowModal(true)} className="bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 font-bold rounded-lg px-6 py-2">Nuevo cliente</button>
         </div>
       </div>
 
