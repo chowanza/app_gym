@@ -16,6 +16,8 @@ const PaymentSchema = new Schema(
     membershipMonths: { type: Number, default: 1 }, // Deprecated in favor of durationValue/Type
     durationValue: { type: Number, default: 1 },
     durationType: { type: String, enum: ['days', 'months'], default: 'months' },
+    // Plan adquirido (snapshot)
+    planName: { type: String },
     // Snapshot del nuevo vencimiento tras aplicar este pago
     membershipEndAfter: { type: Date },
     // Multi-moneda

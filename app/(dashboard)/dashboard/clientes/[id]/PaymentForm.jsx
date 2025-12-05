@@ -86,6 +86,10 @@ export default function PaymentForm({ customerId, initialPlanName }) {
       setError('El número de referencia es requerido para Pago Móvil');
       return;
     }
+
+    const planObj = plans.find(p => p._id === selectedPlan);
+    const planName = planObj ? planObj.name : undefined;
+
     try {
       setLoading(true);
       const res = await fetch('/api/payments', {
@@ -101,6 +105,7 @@ export default function PaymentForm({ customerId, initialPlanName }) {
           currency,
           exchangeRate: exchangeRate,
           amountVES: Number(amountVES),
+          planName,
         }),
       });
       const json = await res.json();

@@ -13,7 +13,7 @@ export async function POST(request) {
     const body = await request.json();
     const parsed = parseSafe(PaymentCreateSchema, body);
     if (!parsed.ok) return NextResponse.json({ success: false, error: parsed.error }, { status: 400 });
-    const { customer: customerId, amount, paymentMethod, referenceNumber, membershipMonths, durationValue, durationType, paymentDate, currency, exchangeRate, amountVES } = body; // Usar body directo para campos nuevos no en schema estricto aun
+    const { customer: customerId, amount, paymentMethod, referenceNumber, membershipMonths, durationValue, durationType, paymentDate, currency, exchangeRate, amountVES, planName } = body; // Usar body directo para campos nuevos no en schema estricto aun
     const amt = Number(amount);
 
     const customer = await Customer.findById(customerId);
@@ -33,6 +33,7 @@ export async function POST(request) {
       currency: currency || 'USD',
       exchangeRate: exchangeRate || 1,
       amountVES: amountVES || undefined,
+      planName,
       createdBy: auth?.sub,
     });
     // Recompute entire chain to handle out-of-order paymentDate properly

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { toast } from '@/lib/toastBus';
 import PaymentEditModal from './PaymentEditModal';
 
@@ -44,13 +45,13 @@ export default function PagosClient() {
     }
   };
 
-  useEffect(() => { fetchPayments({ reset: true }); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
-
-  const onSearch = async () => {
-    setPage(1);
-    await fetchPayments({ reset: true });
-    toast.success('Filtros aplicados');
-  };
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPage(1);
+      fetchPayments({ reset: true });
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [q, from, to]);
 
   const loadMore = async () => {
     if (loading || !hasMore) return;
@@ -68,7 +69,7 @@ export default function PagosClient() {
 
   const onRefresh = async () => {
     setQ(''); setFrom(''); setTo(''); setPage(1);
-    await fetchPayments({ reset: true });
+    // The effect will trigger fetch
     toast.success('Listado actualizado');
   };
 
@@ -77,7 +78,6 @@ export default function PagosClient() {
       <div className="flex flex-col gap-3">
         <div className="flex max-w-xl gap-2">
           <input value={q} onChange={(e)=>setQ(e.target.value)} placeholder="Buscar por nombre o cédula" className="w-full rounded border border-purple-200 bg-white px-3 py-2 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500" />
-          <button onClick={onSearch} className="btn-brand btn-animated px-4 py-2">{loading ? '...' : 'Buscar'}</button>
           <button onClick={onRefresh} className="btn-brand px-4 py-2">Refrescar</button>
         </div>
         <div className="flex flex-wrap items-end gap-2">
@@ -89,7 +89,6 @@ export default function PagosClient() {
             <label className="mb-1 block text-xs font-medium text-zinc-600">Hasta</label>
             <input type="date" value={to} onChange={(e)=>setTo(e.target.value)} className="rounded border border-purple-200 bg-white px-3 py-2 outline-none focus:border-purple-500" />
           </div>
-          <button onClick={onSearch} className="btn-brand px-4 py-2">Aplicar filtros</button>
           <a href={exportHref()} className="ml-auto btn-brand px-4 py-2">Exportar CSV</a>
         </div>
       </div>
@@ -121,7 +120,7 @@ export default function PagosClient() {
               items.map(p => (
                 <tr key={p._id} className="hover:bg-purple-50/50 transition-colors">
                   <td className="border-b border-purple-50 px-3 py-2 text-zinc-600">{new Date(p.paymentDate || p.createdAt).toLocaleString()}</td>
-                  <td className="border-b border-purple-50 px-3 py-2 font-medium"><a className="hover:underline hover:text-brand-via text-zinc-800" href={`/dashboard/clientes/${p.customer?._id || p.customer}`}>{p.customer?.name || '-'}</a></td>
+                  <td className="border-b border-purple-50 px-3 py-2 font-medium"><Link className="hover:underline hover:text-brand-via text-zinc-800" href={`/dashboard/clientes/${p.customer?._id || p.customer}`}>{p.customer?.name || '-'}</Link></td>
                   <td className="border-b border-purple-50 px-3 py-2 text-zinc-600">{p.customer?.cedula || '-'}</td>
                   <td className="border-b border-purple-50 px-3 py-2">
                     <div className="font-semibold text-emerald-600">${p.amount.toFixed(2)}</div>

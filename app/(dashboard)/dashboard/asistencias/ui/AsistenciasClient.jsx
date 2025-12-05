@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { toast } from '@/lib/toastBus';
 
 export default function AsistenciasClient() {
@@ -40,7 +41,13 @@ export default function AsistenciasClient() {
     } catch {}
   };
 
-  useEffect(() => { fetchRecent({ reset: true }); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPage(1);
+      fetchRecent({ reset: true });
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [q, from, to]);
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -157,7 +164,12 @@ export default function AsistenciasClient() {
       {info && (
         <div className="max-w-xl rounded border border-purple-200 bg-white p-4 shadow-sm">
           <div className="text-sm text-zinc-500">Cliente</div>
-          <div className="text-lg font-semibold text-zinc-800">{info.customer?.name} <span className="ml-2 rounded bg-purple-100 px-2 py-0.5 text-xs text-purple-700">{info.customer?.cedula}</span></div>
+          <div className="text-lg font-semibold text-zinc-800">
+            <Link href={`/dashboard/clientes/${info.customer?._id}`} className="hover:underline hover:text-brand-via">
+              {info.customer?.name}
+            </Link>
+            <span className="ml-2 rounded bg-purple-100 px-2 py-0.5 text-xs text-purple-700">{info.customer?.cedula}</span>
+          </div>
           <div className="mt-2 text-sm text-zinc-500">Fecha de check-in</div>
           <div className="text-zinc-800">{new Date(info.attendance?.checkInTime || info.attendance?.createdAt).toLocaleString()}</div>
         </div>
@@ -175,8 +187,7 @@ export default function AsistenciasClient() {
             <label className="mb-1 block text-xs font-medium text-zinc-600">Hasta</label>
             <input type="date" value={to} onChange={(e)=>setTo(e.target.value)} className="rounded border border-purple-200 bg-white px-3 py-2 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-zinc-800" />
           </div>
-          <button onClick={async ()=>{ setPage(1); await fetchRecent({ reset: true }); toast.success('Filtros aplicados'); }} className="btn-brand px-4 py-2">Aplicar filtros</button>
-          <button onClick={async ()=>{ setQ(''); setFrom(''); setTo(''); setPage(1); await fetchRecent({ reset: true }); toast.success('Filtros limpiados'); }} className="btn-brand px-4 py-2">Limpiar</button>
+          <button onClick={()=>{ setQ(''); setFrom(''); setTo(''); setPage(1); toast.success('Filtros limpiados'); }} className="btn-brand px-4 py-2">Limpiar</button>
           <a href={(function(){ const p=new URLSearchParams(); if(q.trim())p.set('q',q.trim()); if(from)p.set('from',from); if(to)p.set('to',to); return `/api/attendance/export?${p.toString()}`; })()} className="ml-auto btn-brand px-4 py-2">Exportar CSV</a>
         </div>
         <div className="overflow-x-auto">
@@ -196,7 +207,13 @@ export default function AsistenciasClient() {
                 recent.map((a) => (
                   <tr key={a._id} className="hover:bg-purple-50/50 text-zinc-700">
                     <td className="border-b border-purple-50 px-3 py-3">{new Date(a.checkInTime || a.createdAt).toLocaleString()}</td>
-                    <td className="border-b border-purple-50 px-3 py-3 font-medium">{a.customer?.name || '-'}</td>
+                    <td className="border-b border-purple-50 px-3 py-3 font-medium">
+                      {a.customer ? (
+                        <Link className="hover:underline hover:text-brand-via text-zinc-800" href={`/dashboard/clientes/${a.customer._id}`}>
+                          {a.customer.name}
+                        </Link>
+                      ) : '-'}
+                    </td>
                     <td className="border-b border-purple-50 px-3 py-3">{a.customer?.cedula || '-'}</td>
                     <td className="border-b border-purple-50 px-3 py-3">
                       <div className="flex gap-2">

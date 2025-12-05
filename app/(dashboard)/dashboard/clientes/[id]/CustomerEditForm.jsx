@@ -30,8 +30,8 @@ export default function CustomerEditForm({ customer }) {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    if (file.size > 100 * 1024) { // 100KB limit
-      toast.error('La imagen es muy grande (máx 100KB)');
+    if (file.size > 1024 * 1024) { // 1MB limit
+      toast.error('La imagen es muy grande (máx 1MB)');
       return;
     }
     const reader = new FileReader();

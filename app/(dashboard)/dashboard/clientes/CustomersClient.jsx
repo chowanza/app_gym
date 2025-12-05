@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { toast } from '@/lib/toastBus';
 
 export default function CustomersClient() {
@@ -50,15 +51,21 @@ export default function CustomersClient() {
   };
 
   useEffect(() => {
-    fetchList("", "", 1, false);
+    const timer = setTimeout(() => {
+      fetchList(query, statusFilter, 1, false);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [query, statusFilter]);
+
+  useEffect(() => {
     fetchPlans();
   }, []);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    if (file.size > 100 * 1024) { // 100KB limit
-      toast.error('La imagen es muy grande (máx 100KB)');
+    if (file.size > 1024 * 1024) { // 1MB limit
+      toast.error('La imagen es muy grande (máx 1MB)');
       return;
     }
     const reader = new FileReader();
@@ -94,7 +101,7 @@ export default function CustomersClient() {
     }
   };
 
-  const onSearch = () => fetchList(query, statusFilter, 1, false);
+
   const loadMore = () => fetchList(query, statusFilter, page + 1, true);
 
   const onDelete = async (id) => {
@@ -128,24 +135,18 @@ export default function CustomersClient() {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && onSearch()}
             placeholder="Buscar por nombre o cédula"
             className="w-full rounded border border-purple-200 bg-white px-3 py-2 outline-none focus:border-purple-500 sm:w-80"
           />
           <select
             value={statusFilter}
-            onChange={(e) => {
-              const val = e.target.value;
-              setStatusFilter(val);
-              fetchList(query, val, 1, false);
-            }}
+            onChange={(e) => setStatusFilter(e.target.value)}
             className="rounded border border-purple-200 bg-white px-3 py-2 outline-none focus:border-purple-500"
           >
             <option value="">Todos</option>
             <option value="Activo">Activos</option>
             <option value="Inactivo">Inactivos</option>
           </select>
-          <button onClick={onSearch} className="btn-brand btn-animated px-4 py-2">{loading ? '...' : 'Buscar'}</button>
           <div className="flex items-center justify-center px-3 py-2 bg-white border border-purple-100 rounded text-purple-700 font-medium shadow-sm" title="Total de clientes">
             {total}
           </div>
@@ -194,7 +195,7 @@ export default function CustomersClient() {
                           {c.name.charAt(0).toUpperCase()}
                         </div>
                       )}
-                      <a className="hover:underline hover:text-brand-via" href={`/dashboard/clientes/${c._id}`}>{c.name}</a>
+                      <Link className="hover:underline hover:text-brand-via" href={`/dashboard/clientes/${c._id}`}>{c.name}</Link>
                     </div>
                   </td>
                   <td className="border-b border-purple-50 px-3 py-2 text-zinc-600">{c.cedula}</td>
