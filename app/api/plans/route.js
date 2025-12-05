@@ -26,7 +26,7 @@ export async function POST(request) {
     const body = await request.json();
     
     // Basic validation
-    if (!body.name || body.price === undefined || !body.durationMonths) {
+    if (!body.name || body.price === undefined || !body.durationValue) {
       return NextResponse.json({ success: false, error: 'Faltan datos requeridos' }, { status: 400 });
     }
 

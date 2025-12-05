@@ -14,6 +14,10 @@ export default function CustomersClient() {
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ name: "", cedulaPrefix: "V-", cedulaNumber: "", email: "", phone: "", membershipType: "", photoUrl: "" });
   const [plans, setPlans] = useState([]);
+  
+  // Payment state
+  const [includePayment, setIncludePayment] = useState(false);
+  const [paymentForm, setPaymentForm] = useState({ amount: "", method: "Efectivo", reference: "", exchangeRate: 0 });
 
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
@@ -50,6 +54,16 @@ export default function CustomersClient() {
     } catch {}
   };
 
+  const fetchRate = async () => {
+    try {
+      const res = await fetch('/api/config/rate');
+      const json = await res.json();
+      if (json.success && json.rate) {
+        setPaymentForm(prev => ({ ...prev, exchangeRate: json.rate }));
+      }
+    } catch {}
+  };
+
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchList(query, statusFilter, 1, false);
@@ -59,6 +73,7 @@ export default function CustomersClient() {
 
   useEffect(() => {
     fetchPlans();
+    fetchRate();
   }, []);
 
   const handleFileChange = (e) => {
@@ -75,6 +90,18 @@ export default function CustomersClient() {
     reader.readAsDataURL(file);
   };
 
+  const handlePlanChange = (e) => {
+    const planName = e.target.value;
+    setForm({ ...form, membershipType: planName });
+    
+    if (planName && includePayment) {
+      const plan = plans.find(p => p.name === planName);
+      if (plan) {
+        setPaymentForm(prev => ({ ...prev, amount: plan.price }));
+      }
+    }
+  };
+
   const onSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -82,16 +109,47 @@ export default function CustomersClient() {
     try {
       const fullCedula = `${form.cedulaPrefix}${form.cedulaNumber}`;
       if (!form.name || !form.cedulaNumber) throw new Error('Nombre y cédula son requeridos');
+      
+      const payload = { 
+        ...form, 
+        cedula: fullCedula, 
+        membershipType: form.membershipType || undefined 
+      };
+
+      if (includePayment) {
+        if (!paymentForm.amount || Number(paymentForm.amount) <= 0) throw new Error('Monto inválido para el pago');
+        if (paymentForm.method === 'Pago Movil' && !paymentForm.reference) throw new Error('Referencia requerida para Pago Móvil');
+        
+        const selectedPlan = plans.find(p => p.name === form.membershipType);
+        
+        payload.initialPayment = {
+          amount: Number(paymentForm.amount),
+          paymentMethod: paymentForm.method,
+          referenceNumber: paymentForm.reference,
+          exchangeRate: paymentForm.exchangeRate,
+          amountVES: paymentForm.exchangeRate ? Number(paymentForm.amount) * paymentForm.exchangeRate : undefined,
+          planName: form.membershipType,
+          durationValue: selectedPlan?.durationValue || 1,
+          durationType: selectedPlan?.durationType || 'months'
+        };
+      }
+
       const res = await fetch('/api/customers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, cedula: fullCedula, membershipType: form.membershipType || undefined }),
+        body: JSON.stringify(payload),
       });
       const json = await res.json();
       if (!res.ok || !json.success) throw new Error(json.error || 'Error creando cliente');
+      
+      if (json.warning) toast.warning(json.warning);
+      else toast.success('Cliente creado correctamente');
+      
       setShowModal(false);
       setForm({ name: "", cedulaPrefix: "V-", cedulaNumber: "", email: "", phone: "", membershipType: "", photoUrl: "" });
-      toast.success('Cliente creado correctamente');
+      setIncludePayment(false);
+      setPaymentForm({ amount: "", method: "Efectivo", reference: "", exchangeRate: paymentForm.exchangeRate }); // Keep rate
+      
       fetchList(query, statusFilter);
     } catch (e) {
       setError(e.message);
@@ -284,20 +342,79 @@ export default function CustomersClient() {
               </div>
               <div>
                 <label className="mb-1 block text-sm font-medium text-zinc-600">Tipo de membresía</label>
-                <select value={form.membershipType} onChange={(e)=>setForm({ ...form, membershipType: e.target.value })} className="w-full rounded border border-purple-200 bg-white px-3 py-2 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500">
+                <select value={form.membershipType} onChange={handlePlanChange} className="w-full rounded border border-purple-200 bg-white px-3 py-2 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500">
                   <option value="">Selecciona...</option>
                   {plans.length > 0 ? (
                     plans.map(p => <option key={p._id} value={p.name}>{p.name}</option>)
                   ) : (
                     <>
-                      <option>Gym</option>
-                      <option>Xtrembike</option>
-                      <option>Diario</option>
-                      <option>Mensual</option>
-                      <option>Otro</option>
+                      <option value="Gym">Gym</option>
+                      <option value="Xtrembike">Xtrembike</option>
+                      <option value="Diario">Diario</option>
+                      <option value="Mensual">Mensual</option>
+                      <option value="Otro">Otro</option>
                     </>
                   )}
                 </select>
+              </div>
+
+              <div className="rounded-lg border border-purple-100 bg-purple-50/50 p-3">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    checked={includePayment} 
+                    onChange={(e) => setIncludePayment(e.target.checked)}
+                    className="rounded border-purple-300 text-purple-600 focus:ring-purple-500"
+                  />
+                  <span className="text-sm font-medium text-purple-900">Registrar Pago Inicial</span>
+                </label>
+
+                {includePayment && (
+                  <div className="mt-3 grid gap-3 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-zinc-600">Monto ($)</label>
+                      <input 
+                        type="number" 
+                        step="0.01"
+                        value={paymentForm.amount} 
+                        onChange={(e) => setPaymentForm({ ...paymentForm, amount: e.target.value })} 
+                        className="w-full rounded border border-purple-200 bg-white px-3 py-2 text-sm outline-none focus:border-purple-500"
+                        placeholder="0.00"
+                      />
+                      {paymentForm.exchangeRate > 0 && paymentForm.amount > 0 && (
+                        <p className="mt-1 text-xs text-zinc-500">
+                          Ref: {(paymentForm.amount * paymentForm.exchangeRate).toLocaleString('es-VE', { minimumFractionDigits: 2 })} Bs 
+                          <span className="ml-1 text-zinc-400">(@ {paymentForm.exchangeRate} Bs/$)</span>
+                        </p>
+                      )}
+                    </div>
+                    
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-zinc-600">Método</label>
+                      <select 
+                        value={paymentForm.method} 
+                        onChange={(e) => setPaymentForm({ ...paymentForm, method: e.target.value })} 
+                        className="w-full rounded border border-purple-200 bg-white px-3 py-2 text-sm outline-none focus:border-purple-500"
+                      >
+                        <option value="Efectivo">Efectivo</option>
+                        <option value="Pago Movil">Pago Móvil</option>
+                        <option value="Otro">Otro</option>
+                      </select>
+                    </div>
+
+                    {paymentForm.method === 'Pago Movil' && (
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-zinc-600">Referencia</label>
+                        <input 
+                          value={paymentForm.reference} 
+                          onChange={(e) => setPaymentForm({ ...paymentForm, reference: e.target.value })} 
+                          className="w-full rounded border border-purple-200 bg-white px-3 py-2 text-sm outline-none focus:border-purple-500"
+                          placeholder="Últimos 4-6 dígitos"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
               <div className="mt-2 flex justify-end gap-2">
                 <button type="button" onClick={()=>setShowModal(false)} className="rounded px-4 py-2 text-zinc-600 hover:bg-zinc-100">Cancelar</button>

@@ -134,46 +134,94 @@ export default function AsistenciasClient() {
   };
 
   return (
-    <div className="grid gap-6">
-      <form onSubmit={onSubmit} className="flex max-w-xl gap-2">
-        <div className="flex w-full rounded border border-purple-200 bg-white focus-within:border-purple-500 focus-within:ring-1 focus-within:ring-purple-500">
-          <select
-            value={cedulaPrefix}
-            onChange={(e) => setCedulaPrefix(e.target.value)}
-            className="rounded-l bg-transparent px-3 py-2 text-zinc-700 outline-none hover:bg-purple-50"
-          >
-            <option value="V-">V-</option>
-            <option value="J-">J-</option>
-            <option value="E-">E-</option>
-          </select>
-          <div className="h-auto w-px bg-purple-100"></div>
-          <input
-            value={cedulaNumber}
-            onChange={(e) => setCedulaNumber(e.target.value)}
-            placeholder="Número de cédula"
-            type="number"
-            className="w-full rounded-r bg-transparent px-3 py-2 text-zinc-800 outline-none"
-          />
-        </div>
-        <button disabled={loading} className="btn-brand btn-animated px-4 py-2 disabled:opacity-60">{loading ? 'Registrando...' : 'Registrar'}</button>
-      </form>
+    <div className="grid gap-8">
+      {/* Sección de Registro Destacada */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-600 to-blue-600 p-1 shadow-lg">
+        <div className="relative rounded-xl bg-white p-6 sm:p-8">
+          <h2 className="mb-6 text-center text-2xl font-bold text-gray-800 sm:text-3xl">
+            Registrar Asistencia
+          </h2>
+          
+          <form onSubmit={onSubmit} className="mx-auto flex max-w-2xl flex-col gap-4 sm:flex-row">
+            <div className="flex flex-1 rounded-xl border-2 border-purple-100 bg-gray-50 transition-colors focus-within:border-purple-500 focus-within:bg-white">
+              <select
+                value={cedulaPrefix}
+                onChange={(e) => setCedulaPrefix(e.target.value)}
+                className="rounded-l-xl bg-transparent px-4 py-3 text-lg font-medium text-gray-700 outline-none hover:bg-purple-50"
+              >
+                <option value="V-">V-</option>
+                <option value="J-">J-</option>
+                <option value="E-">E-</option>
+              </select>
+              <div className="my-2 w-px bg-gray-300"></div>
+              <input
+                value={cedulaNumber}
+                onChange={(e) => setCedulaNumber(e.target.value)}
+                placeholder="Cédula de Identidad"
+                type="number"
+                autoFocus
+                className="w-full rounded-r-xl bg-transparent px-4 py-3 text-lg font-medium text-gray-900 placeholder-gray-400 outline-none"
+              />
+            </div>
+            <button 
+              disabled={loading} 
+              className="group relative overflow-hidden rounded-xl bg-purple-600 px-8 py-3 text-lg font-bold text-white shadow-md transition-all hover:bg-purple-700 hover:shadow-lg disabled:opacity-70 sm:w-auto"
+            >
+              <span className="relative z-10 flex items-center justify-center gap-2">
+                {loading ? (
+                  <>
+                    <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+                    Procesando...
+                  </>
+                ) : (
+                  <>
+                    CHECK-IN
+                    <svg className="h-5 w-5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                  </>
+                )}
+              </span>
+            </button>
+          </form>
 
-      {error && <div className="max-w-xl rounded border border-red-200 bg-red-50 p-2 text-sm text-red-600">{error}</div>}
-      {success && <div className="max-w-xl rounded border border-emerald-200 bg-emerald-50 p-2 text-sm text-emerald-600">{success}</div>}
+          {/* Mensajes de estado grandes */}
+          {error && (
+            <div className="mt-6 animate-pulse rounded-lg bg-red-50 p-4 text-center text-lg font-medium text-red-600 border border-red-100">
+              ⚠️ {error}
+            </div>
+          )}
+          {success && (
+            <div className="mt-6 rounded-lg bg-green-50 p-4 text-center text-lg font-medium text-green-600 border border-green-100">
+              ✅ {success}
+            </div>
+          )}
 
-      {info && (
-        <div className="max-w-xl rounded border border-purple-200 bg-white p-4 shadow-sm">
-          <div className="text-sm text-zinc-500">Cliente</div>
-          <div className="text-lg font-semibold text-zinc-800">
-            <Link href={`/dashboard/clientes/${info.customer?._id}`} className="hover:underline hover:text-brand-via">
-              {info.customer?.name}
-            </Link>
-            <span className="ml-2 rounded bg-purple-100 px-2 py-0.5 text-xs text-purple-700">{info.customer?.cedula}</span>
-          </div>
-          <div className="mt-2 text-sm text-zinc-500">Fecha de check-in</div>
-          <div className="text-zinc-800">{new Date(info.attendance?.checkInTime || info.attendance?.createdAt).toLocaleString()}</div>
+          {/* Tarjeta de Información del Cliente (Resultado) */}
+          {info && (
+            <div className="mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="mx-auto max-w-2xl overflow-hidden rounded-xl border border-purple-100 bg-white shadow-md">
+                <div className="bg-purple-50 px-6 py-4 border-b border-purple-100 flex justify-between items-center">
+                  <span className="text-sm font-semibold text-purple-800 uppercase tracking-wider">Acceso Permitido</span>
+                  <span className="text-xs font-medium text-purple-600">{new Date(info.attendance?.checkInTime || info.attendance?.createdAt).toLocaleString()}</span>
+                </div>
+                <div className="p-6 flex items-center gap-4">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-purple-100 text-2xl font-bold text-purple-600">
+                    {info.customer?.name?.charAt(0)}
+                  </div>
+                  <div>
+                    <Link href={`/dashboard/clientes/${info.customer?._id}`} className="text-2xl font-bold text-gray-800 hover:text-purple-600 hover:underline">
+                      {info.customer?.name}
+                    </Link>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="rounded bg-gray-100 px-2 py-0.5 text-sm font-medium text-gray-600">{info.customer?.cedula}</span>
+                      <span className="rounded bg-green-100 px-2 py-0.5 text-sm font-medium text-green-700">Membresía Activa</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-      )}
+      </div>
 
       <section className="rounded-xl border border-purple-100 bg-white p-6 shadow-sm">
         <h2 className="mb-4 text-lg font-semibold text-zinc-800">Últimas asistencias</h2>

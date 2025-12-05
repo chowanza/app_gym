@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import Customer from '@/models/Customer';
+import Payment from '@/models/Payment';
 import { requireAuth } from '@/lib/serverAuth';
 import { CustomerCreateSchema, parseSafe } from '@/lib/validation';
+import { recomputeMembershipForCustomer } from '@/lib/recomputeMembership';
 
 export async function GET(request) {
   try {
@@ -57,6 +59,7 @@ export async function POST(request) {
     const parsed = parseSafe(CustomerCreateSchema, body);
     if (!parsed.ok) return NextResponse.json({ success: false, error: parsed.error }, { status: 400 });
     const { name, cedula, email, phone, dateOfBirth, startDate, membershipType, photoUrl } = parsed.data;
+    const { initialPayment } = body; // Extract optional initial payment data
 
     const exists = await Customer.findOne({ cedula });
     if (exists) {
@@ -74,6 +77,41 @@ export async function POST(request) {
       photoUrl: photoUrl || undefined,
       createdBy: auth?.sub,
     });
+
+    // Handle initial payment if provided
+    if (initialPayment && initialPayment.amount > 0) {
+      try {
+        await Payment.create({
+          customer: customer._id,
+          amount: Number(initialPayment.amount),
+          paymentMethod: initialPayment.paymentMethod,
+          referenceNumber: initialPayment.referenceNumber,
+          durationValue: initialPayment.durationValue || 1,
+          durationType: initialPayment.durationType || 'months',
+          paymentDate: new Date(),
+          currency: initialPayment.currency || 'USD',
+          exchangeRate: initialPayment.exchangeRate || 1,
+          amountVES: initialPayment.amountVES,
+          planName: initialPayment.planName,
+          createdBy: auth?.sub,
+        });
+        
+        // Recompute membership status
+        await recomputeMembershipForCustomer(customer._id);
+        
+        // Fetch updated customer
+        const updatedCustomer = await Customer.findById(customer._id);
+        return NextResponse.json({ success: true, data: updatedCustomer }, { status: 201 });
+      } catch (paymentErr) {
+        console.error('Error creating initial payment:', paymentErr);
+        // Return customer created but with warning about payment
+        return NextResponse.json({ 
+          success: true, 
+          data: customer, 
+          warning: 'Cliente creado pero falló el registro del pago inicial' 
+        }, { status: 201 });
+      }
+    }
 
     return NextResponse.json({ success: true, data: customer }, { status: 201 });
   } catch (err) {
