@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import { toast } from '@/lib/toastBus';
 
 export default function DailyClosingClient() {
   const today = new Date();
@@ -27,6 +28,44 @@ export default function DailyClosingClient() {
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Rate editing state
+  const [systemRate, setSystemRate] = useState(0);
+  const [isEditingRate, setIsEditingRate] = useState(false);
+  const [newRate, setNewRate] = useState('');
+
+  const fetchSystemRate = async () => {
+    try {
+      const res = await fetch('/api/config/rate');
+      const data = await res.json();
+      if (data.success) {
+        setSystemRate(data.rate);
+        setNewRate(data.rate);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const saveRate = async () => {
+    try {
+        const res = await fetch('/api/config/rate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ rate: newRate })
+        });
+        const data = await res.json();
+        if (data.success) {
+            setSystemRate(data.rate);
+            setIsEditingRate(false);
+            toast.success('Tasa actualizada correctamente');
+        } else {
+            toast.error(data.error || 'Error actualizando tasa');
+        }
+    } catch (e) {
+        toast.error('Error de conexión');
+    }
+  };
 
   const getRange = () => {
     if (reportType === 'daily') {
@@ -80,6 +119,10 @@ export default function DailyClosingClient() {
   useEffect(() => {
     fetchReport();
   }, [reportType, selectedDate, selectedWeek, selectedMonth]);
+
+  useEffect(() => {
+    fetchSystemRate();
+  }, []);
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'USD' }).format(amount);
@@ -265,12 +308,42 @@ export default function DailyClosingClient() {
         <>
           {/* Tasa del día / periodo */}
           <div className="bg-purple-50 border border-purple-100 rounded-lg p-4 flex items-center justify-between">
-            <span className="text-purple-800 font-medium">
-                {reportType === 'daily' ? 'Tasa de Cambio Promedio (Día):' : 'Tasa Promedio del Periodo:'}
-            </span>
-            <span className="text-2xl font-bold text-purple-900">
-              {report.exchangeRate ? `${report.exchangeRate.toFixed(2)} Bs/USD` : 'N/A'}
-            </span>
+            <div>
+                <span className="text-purple-800 font-medium block">
+                    {reportType === 'daily' ? 'Tasa de Cambio Promedio (Día):' : 'Tasa Promedio del Periodo:'}
+                </span>
+                <span className="text-xs text-purple-600">
+                    (Sistema: {systemRate} Bs/$)
+                </span>
+            </div>
+            
+            <div className="flex items-center gap-2">
+                {isEditingRate ? (
+                    <div className="flex items-center gap-2">
+                        <input 
+                            type="number" 
+                            value={newRate}
+                            onChange={(e) => setNewRate(e.target.value)}
+                            className="w-24 rounded border border-purple-300 px-2 py-1 text-lg font-bold text-purple-900 outline-none focus:border-purple-500"
+                        />
+                        <button onClick={saveRate} className="rounded bg-purple-600 p-1 text-white hover:bg-purple-700" title="Guardar">
+                            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                        </button>
+                        <button onClick={() => setIsEditingRate(false)} className="rounded bg-gray-200 p-1 text-gray-600 hover:bg-gray-300" title="Cancelar">
+                            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                    </div>
+                ) : (
+                    <div className="flex items-center gap-2">
+                        <span className="text-2xl font-bold text-purple-900">
+                        {report.exchangeRate ? `${report.exchangeRate.toFixed(2)} Bs/USD` : (systemRate ? `${systemRate} Bs/USD` : 'N/A')}
+                        </span>
+                        <button onClick={() => setIsEditingRate(true)} className="text-purple-400 hover:text-purple-600" title="Editar Tasa del Sistema">
+                            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                        </button>
+                    </div>
+                )}
+            </div>
           </div>
 
           {/* Tarjetas de Resumen */}

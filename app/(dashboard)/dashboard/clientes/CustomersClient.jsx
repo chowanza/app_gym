@@ -2,9 +2,11 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { toast } from '@/lib/toastBus';
 
 export default function CustomersClient() {
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState(""); // "" | "Activo" | "Inactivo"
   const [loading, setLoading] = useState(false);
@@ -150,7 +152,11 @@ export default function CustomersClient() {
       setIncludePayment(false);
       setPaymentForm({ amount: "", method: "Efectivo", reference: "", exchangeRate: paymentForm.exchangeRate }); // Keep rate
       
-      fetchList(query, statusFilter);
+      if (json.data && json.data._id) {
+        router.push(`/dashboard/clientes/${json.data._id}`);
+      } else {
+        fetchList(query, statusFilter);
+      }
     } catch (e) {
       setError(e.message);
       toast.error(e.message);
@@ -285,7 +291,7 @@ export default function CustomersClient() {
 
       {showModal && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-xl border border-purple-100 bg-white p-6 shadow-xl">
+          <div className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-xl border border-purple-100 bg-white p-6 shadow-xl">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-semibold text-zinc-800">Registrar nuevo cliente</h2>
               <button onClick={() => setShowModal(false)} className="text-zinc-400 hover:text-zinc-600">✕</button>
