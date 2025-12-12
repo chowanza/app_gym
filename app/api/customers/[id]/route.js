@@ -76,10 +76,19 @@ export async function DELETE(_request, { params }) {
     await requireAuth();
     await dbConnect();
     const { id } = params;
-    const customer = await Customer.findByIdAndDelete(id);
-    if (!customer) {
+
+    const customerToCheck = await Customer.findById(id);
+    if (!customerToCheck) {
       return NextResponse.json({ success: false, error: 'Cliente no encontrado' }, { status: 404 });
     }
+
+    // Prevent deletion if active
+    const now = new Date();
+    if (customerToCheck.paymentStatus === 'Activo' && customerToCheck.membershipEndDate && customerToCheck.membershipEndDate >= now) {
+      return NextResponse.json({ success: false, error: 'No se puede eliminar un cliente activo' }, { status: 400 });
+    }
+
+    await Customer.findByIdAndDelete(id);
     return NextResponse.json({ success: true });
   } catch (err) {
     return NextResponse.json({ success: false, error: 'Error eliminando cliente' }, { status: 500 });

@@ -248,7 +248,9 @@ export default function CustomersClient() {
             ) : items.length === 0 ? (
               <tr><td colSpan={6} className="px-3 py-4 text-center text-zinc-500">Sin resultados</td></tr>
             ) : (
-              items.map((c) => (
+              items.map((c) => {
+                const isActive = c.paymentStatus === 'Activo' && c.membershipEndDate && new Date() <= new Date(c.membershipEndDate);
+                return (
                 <tr key={c._id} className="hover:bg-purple-50/50 transition-colors">
                   <td className="border-b border-purple-50 px-3 py-2 font-medium text-zinc-800">
                     <div className="flex items-center gap-3">
@@ -269,15 +271,17 @@ export default function CustomersClient() {
                   <td className="border-b border-purple-50 px-3 py-2">
                     <div className="flex gap-2">
                       <a href={`/dashboard/clientes/${c._id}`} className="rounded border border-zinc-300 px-2 py-1 text-xs text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900">Editar</a>
-                      <button
-                        disabled={deletingId===c._id}
-                        onClick={()=>onDelete(c._id)}
-                        className="rounded border border-red-200 bg-red-50 px-2 py-1 text-xs text-red-600 hover:bg-red-100 disabled:opacity-60"
-                      >{deletingId===c._id?'Eliminando...':'Eliminar'}</button>
+                      {!isActive && (
+                        <button
+                          disabled={deletingId===c._id}
+                          onClick={()=>onDelete(c._id)}
+                          className="rounded border border-red-200 bg-red-50 px-2 py-1 text-xs text-red-600 hover:bg-red-100 disabled:opacity-60"
+                        >{deletingId===c._id?'Eliminando...':'Eliminar'}</button>
+                      )}
                     </div>
                   </td>
                 </tr>
-              ))
+              )})
             )}
           </tbody>
         </table>
