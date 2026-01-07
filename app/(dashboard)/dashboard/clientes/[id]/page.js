@@ -57,6 +57,8 @@ export default async function ClienteDetallePage({ params }) {
         <BackButton />
       </div>
 
+      <ExpirationAlert endDate={customer.membershipEndDate} />
+
       <div className="mb-6 grid gap-4 sm:grid-cols-4">
         <div className="rounded-xl border border-purple-100 bg-white p-6 shadow-sm">
           <div className="text-sm font-medium text-zinc-500">Membresía</div>
@@ -137,6 +139,30 @@ function renderDaysBadge(end) {
       {isExpired ? `${Math.abs(days)} días vencido` : `${days} días`}
     </span>
   );
+}
+
+function ExpirationAlert({ endDate }) {
+  const days = daysRemaining(endDate);
+  if (days !== null && days >= 0 && days <= 3) {
+    return (
+      <div className="mb-6 rounded-md bg-orange-50 p-4 border border-orange-200">
+        <div className="flex">
+          <div className="flex-shrink-0">
+            <svg className="h-5 w-5 text-orange-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <div className="ml-3">
+            <h3 className="text-sm font-medium text-orange-800">Membresía por vencer</h3>
+            <div className="mt-1 text-sm text-orange-700">
+              <p>A este cliente le quedan <strong>{days} días</strong> de vigencia.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return null;
 }
 
 
