@@ -72,7 +72,7 @@ export default function PaymentsTable({ payments }) {
               <th className="border-b border-purple-100 px-4 py-3 font-medium">Fecha</th>
               <th className="border-b border-purple-100 px-4 py-3 font-medium">Monto</th>
               <th className="border-b border-purple-100 px-4 py-3 font-medium">Método</th>
-              <th className="border-b border-purple-100 px-4 py-3 font-medium">Meses</th>
+              <th className="border-b border-purple-100 px-4 py-3 font-medium">Duración</th>
               <th className="border-b border-purple-100 px-4 py-3 font-medium">Referencia</th>
               <th className="border-b border-purple-100 px-4 py-3 font-medium">Nuevo vencimiento</th>
               <th className="border-b border-purple-100 px-4 py-3 font-medium">Acciones</th>
@@ -87,7 +87,16 @@ export default function PaymentsTable({ payments }) {
                   {p.amountVES && <div className="text-xs text-zinc-500">{p.amountVES?.toLocaleString('es-VE')} Bs</div>}
                 </td>
                 <td className="border-b border-purple-50 px-4 py-3">{p.paymentMethod}</td>
-                <td className="border-b border-purple-50 px-4 py-3">{p.membershipMonths || 1}</td>
+                <td className="border-b border-purple-50 px-4 py-3">
+                  {(() => {
+                    const val = p.durationValue ?? p.membershipMonths ?? 1;
+                    const type = p.durationType || 'months';
+                    const unit = type === 'days' 
+                      ? (val === 1 ? 'Día' : 'Días') 
+                      : (val === 1 ? 'Mes' : 'Meses');
+                    return `${val} ${unit}`;
+                  })()}
+                </td>
                 <td className="border-b border-purple-50 px-4 py-3">{p.referenceNumber || '-'}</td>
                 <td className="border-b border-purple-50 px-4 py-3">{p.membershipEndAfter ? new Date(p.membershipEndAfter).toLocaleDateString() : '-'}</td>
                 <td className="border-b border-purple-50 px-4 py-3">
